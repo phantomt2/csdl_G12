@@ -1,55 +1,37 @@
- CHỦ ĐỀ 2: BẢNG THUẬT NGỮ VÀ ĐỊNH NGHĨA THỰC THỂ CỐT LÕI (GLOSSARY)
-(Cập nhật theo chuẩn cấu trúc dữ liệu mindmap)
+CHỦ ĐỀ 2: BẢNG THUẬT NGỮ VÀ ĐỊNH NGHĨA THỰC THỂ CỐT LÕI (SECTION 1.2 - GLOSSARY)
 
----
+1. Thuật ngữ hoặc tên feature đó (từ lúc mở web lên rồi tới lúc xem phim…)
 
- NHÓM 1: THỰC THỂ NGƯỜI DÙNG & TÀI KHOẢN (USER ENTITIES)
+Dựa trên luồng trải nghiệm, các thuật ngữ cốt lõi bao gồm: Guests, User, Subscription Plan, Profiles, Parental Control, Content, Type, Meta-data, History và Watchlist.
 
-- GUESTS (KHÁCH TRUY CẬP)
-  + Ý nghĩa: Những người truy cập vào nền tảng nhưng chưa đăng ký hoặc chưa đăng nhập. Nhóm này bị hạn chế quyền hạn (chỉ xem được trang chủ hoặc giới thiệu).
-- USER (NGƯỜI DÙNG ĐÃ ĐĂNG KÝ)
-  + Ý nghĩa: Khách hàng đã tạo tài khoản thành công trên hệ thống. 
-  + Đặc điểm nhận diện: Quản lý bằng các trường dữ liệu định danh như `UserID` (Mã định danh duy nhất) và `Username` (Tên đăng nhập).
-- SUBSCRIPTION PLAN (GÓI CƯỚC)
-  + Ý nghĩa: Gói dịch vụ trả phí mà User đăng ký, quyết định quyền lợi và giới hạn của tài khoản đó.
-- PROFILES (HỒ SƠ NGƯỜI XEM)
-  + Ý nghĩa: Tài khoản phụ nằm trong một User chính, giúp cá nhân hóa trải nghiệm cho nhiều người dùng chung một tài khoản (VD: các thành viên trong gia đình).
-  + Đặc điểm nhận diện: Quản lý qua `ID` (Mã hồ sơ) và `Name` (Tên hồ sơ).
-- PARENTAL CONTROL (KIỂM SOÁT TRẺ EM)
-  + Ý nghĩa: Tính năng gắn liền với từng Profile, cho phép thiết lập giới hạn độ tuổi để lọc bỏ các nội dung không phù hợp với trẻ em.
+2. Cái thuật ngữ này có ý nghĩ gì trong thực tế là gì ?
 
----
+Guests: Khách truy cập vào nền tảng nhưng chưa đăng nhập.
 
- NHÓM 2: THỰC THỂ NỘI DUNG (CONTENT ENTITIES)
+User: Khách hàng đã đăng ký tài khoản, được hệ thống định danh bằng ID và Tên đăng nhập.
 
-- CONTENT (NỘI DUNG/TÁC PHẨM)
-  + Ý nghĩa: Thực thể gốc đại diện cho mọi video có trên nền tảng. Được định danh bằng `ContentID`.
-- TYPE (PHÂN LOẠI NỘI DUNG)
-  + Ý nghĩa: Nhóm phân loại hình thức của Content. Dựa trên cấu trúc hệ thống, Content được chia thành 4 loại chính:
-    + Movies: Phim lẻ (chỉ có 1 tập).
-    + Documentaries: Phim tài liệu.
-    + Anime Series: Phim hoạt hình dài tập.
-    + TV Shows: Chương trình truyền hình / Phim bộ nhiều tập.
+Subscription Plan: Gói dịch vụ trả phí mà tài khoản User đăng ký sử dụng.
 
----
+Profiles: Các không gian xem độc lập được tạo ra bên trong một tài khoản User để các thành viên trong gia đình sử dụng riêng biệt.
 
-## NHÓM 3: SIÊU DỮ LIỆU NỘI DUNG (META-DATA)
-*(Tập hợp các thuộc tính chi tiết dùng để mô tả một Content)*
+Parental Control: Tính năng kiểm soát độ tuổi được thiết lập trên từng Profile để lọc nội dung trẻ em.
 
-- TITLE: Tên chính thức của tác phẩm.
-- GENRE: Thể loại tác phẩm (Hành động, Hài hước, Kinh dị...).
-- RELEASE YEAR: Năm tác phẩm được phát hành.
-- DURATION: Thời lượng phát của tác phẩm (thường tính bằng phút, áp dụng cho Movies).
-- DIRECTOR: Đạo diễn chỉ đạo tác phẩm.
-- CASTS: Danh sách các diễn viên tham gia diễn xuất.
-- LANGUAGE: Ngôn ngữ gốc và các tùy chọn ngôn ngữ (âm thanh/phụ đề) của tác phẩm.
-- EPISODES: Danh sách các tập phim con (áp dụng riêng cho Anime Series và TV Shows).
+Content: Thuật ngữ chung chỉ các video tác phẩm trên nền tảng, được định danh bằng ContentID.
 
----
+Type: Các định dạng phân loại nội dung gồm Phim lẻ (Movies), Phim tài liệu (Documentaries), Hoạt hình (Anime Series) và Phim bộ (TV Shows).
 
- NHÓM 4: LƯU TRỮ TƯƠNG TÁC (USER ACTIVITY)
+Meta-data: Các thông tin chi tiết đính kèm để mô tả phim như Tiêu đề, Thể loại, Năm phát hành, Thời lượng, Đạo diễn, Diễn viên, Ngôn ngữ, Số tập phim.
 
-- HISTORY (LỊCH SỬ XEM)
-  + Ý nghĩa: Nơi lưu trữ thông tin về các Content mà Profile đã xem hoặc đang xem dở dang.
-- WATCHLIST (DANH SÁCH LƯU TRỮ)
-  + Ý nghĩa: Danh sách các Content mà Profile chủ động thêm vào để theo dõi và xem trong tương lai.
+History: Lịch sử ghi nhận các nội dung đã xem và thời gian xem dở dang.
+
+Watchlist: Danh sách các nội dung được lưu lại để theo dõi.
+
+3. Phân biệt giữa các thuật ngữ khác nhau chỗ nào ?
+
+Phân biệt Guests và User: Guests chưa có tài khoản, trong khi User đã đăng ký và nắm giữ thông tin gói cước (Subscription Plan).
+
+Phân biệt User và Profiles: User là tài khoản gốc dùng để trả tiền, còn Profiles là các tài khoản phụ bên trong dùng để cá nhân hóa lịch sử xem phim của từng người.
+
+Phân biệt Content và Meta-data: Content là luồng video thực tế để chiếu, còn Meta-data là thông tin văn bản giới thiệu về video đó.
+
+Phân biệt History và Watchlist: History do hệ thống tự động lưu lại khi người dùng đang xem phim, còn Watchlist do người dùng chủ động nhấn nút lưu lại khi chưa xem.
