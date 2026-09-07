@@ -16,7 +16,9 @@ Các quy tắc nghiệp vụ dưới đây định nghĩa logic vận hành và 
 
 * **BR02 (Định mức số lượng Hồ sơ theo gói - Profile Quota):**  
   Số lượng Hồ sơ người dùng (`User Profiles`) trực thuộc một Tài khoản bị chặn trên bởi thuộc tính `max_profiles` được quy định trong Gói dịch vụ mà tài khoản đó đang sử dụng:
+
   $$\text{Số lượng Profile hiện có} \le \text{Subscription\\_Tier.max\\_profiles}$$
+
   *(Ví dụ: Gói Basic cho phép tối đa 1 Profile; Gói Standard cho phép tối đa 2 Profiles; Gói Premium cho phép tối đa 5 Profiles).*
 
 * **BR03 (Giới hạn luồng phát đồng thời - Concurrent Streams):**  
@@ -28,7 +30,9 @@ Các quy tắc nghiệp vụ dưới đây định nghĩa logic vận hành và 
 
 * **BR04 (Kiểm soát độ tuổi và nội dung an toàn - Parental Control):**  
   Mỗi Hồ sơ người dùng (`Profile`) được cấu hình một ngưỡng phân loại độ tuổi (`maturity_rating`) hoặc bật chế độ dành riêng cho trẻ em (`is_kids_mode = TRUE`). Hệ thống chỉ cho phép Profile truy cập, tìm kiếm và phát các Nội dung (`Content`) có mức xếp hạng độ tuổi (`age_classification`) thấp hơn hoặc bằng mức giới hạn được cài đặt trên Profile đó:
-  $$\text{Content.age\_classification} \le \text{Profile.maturity\_rating}$$
+
+  $$\text{Content.age\\_classification} \le \text{Profile.maturity\\_rating}$$
+
   Các nội dung vượt quá giới hạn độ tuổi sẽ bị tự động lọc bỏ khỏi giao diện hoặc yêu cầu xác thực mã PIN phụ huynh trước khi phát.
 
 ---
@@ -36,7 +40,7 @@ Các quy tắc nghiệp vụ dưới đây định nghĩa logic vận hành và 
 ### Nhóm 3: Cấu trúc & Phân cấp Nội dung (Content Hierarchy & Metadata Rules)
 
 * **BR05 (Chuyên biệt hóa nội dung - EER Specialization Disjoint & Total):**  
-  Toàn bộ các tác phẩm nghe nhìn phát sóng trên nền tảng bắt buộc phải kế thừa từ thực thể tổng quát `CONTENT` (Ràng buộc tham gia toàn phần - Total Specialization: $\text{Movie} \cup \text{TV\_Episode} = \text{Content}$). Một nội dung chỉ có thể là Phim lẻ (`Movie`) hoặc Tập phim (`TV_Episode`), không thể đồng thời vừa là Phim lẻ vừa là Tập phim (Ràng buộc rời rạc tuyệt đối - Disjoint: $\text{Movie} \cap \text{TV\_Episode} = \emptyset$).
+  Toàn bộ các tác phẩm nghe nhìn phát sóng trên nền tảng bắt buộc phải kế thừa từ thực thể tổng quát `CONTENT` (Ràng buộc tham gia toàn phần - Total Specialization: $\text{Movie} \cup \text{TV\\_Episode} = \text{Content}$). Một nội dung chỉ có thể là Phim lẻ (`Movie`) hoặc Tập phim (`TV_Episode`), không thể đồng thời vừa là Phim lẻ vừa là Tập phim (Ràng buộc rời rạc tuyệt đối - Disjoint: $\text{Movie} \cap \text{TV\\_Episode} = \emptyset$).
 
 * **BR06 (Cấu trúc phân rã Phim bộ truyền hình - TV Series Hierarchy):**  
   Một Phim bộ (`TV_SERIES`) bao gồm từ 1 đến nhiều Mùa phim (`SEASON`). Mỗi Mùa phim bao gồm từ 1 đến nhiều Tập phim (`TV_EPISODE`). Một Tập phim là một thực thể yếu/phụ thuộc tồn tại, không thể phát hành độc lập ngoài ngữ cảnh của một Season và Series cụ thể.
@@ -54,7 +58,7 @@ Các quy tắc nghiệp vụ dưới đây định nghĩa logic vận hành và 
 * **BR09 (Theo dõi tiến trình phát liên tục - Continuous Playback & Watch History):**  
   Khi một Profile bắt đầu xem một Content (Movie hoặc Episode), hệ thống tự động khởi tạo hoặc cập nhật bản ghi trong Lịch sử xem (`Watch History`):
   * Lưu trữ mốc thời gian tạm dừng xem (`last_watched_timestamp`) và thời lượng thực tế đã xem (`watched_duration_seconds`).
-  * Nếu thời lượng đã xem đạt từ **90%** tổng thời lượng nội dung trở lên ($\text{watched\_duration} \ge 0.9 \times \text{duration}$), hệ thống tự động đánh dấu cờ hoàn thành $\text{is\_completed} = \text{TRUE}$.
+  * Nếu thời lượng đã xem đạt từ **90%** tổng thời lượng nội dung trở lên ($\text{watched\\_duration} \ge 0.9 \times \text{duration}$), hệ thống tự động đánh dấu cờ hoàn thành $\text{is\\_completed} = \text{TRUE}$.
   * Khi người dùng mở lại nội dung, hệ thống cho phép tiếp tục phát từ mốc thời gian đã tạm dừng (Resume playback).
 
 ---
@@ -144,5 +148,5 @@ Hệ thống triển khai các biện pháp bảo mật thiết yếu nhằm b�
 
 * **c) An toàn dữ liệu trẻ em & Kiểm soát truy vấn (Child Safety & Query Security):**  
   Tất cả các truy vấn trích xuất dữ liệu nội dung phục vụ cho Profile trẻ em (`is_kids_mode = TRUE`) bắt buộc phải áp dụng bộ lọc cưỡng chế ở tầng truy vấn dữ liệu:
-  $$\text{WHERE age\_classification IN ('G', 'PG')}$$
+  $$\text{WHERE age\\_classification IN ('G', 'PG')}$$
   Đảm bảo dữ liệu không phù hợp tuyệt đối không bao giờ được gửi về máy khách (Client Application).
