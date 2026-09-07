@@ -36,8 +36,8 @@ Các quy tắc nghiệp vụ dưới đây định nghĩa logic vận hành và 
 ### Nhóm 3: Cấu trúc & Phân cấp Nội dung (Content Hierarchy & Metadata Rules)
 
 * **BR05 (Chuyên biệt hóa nội dung - EER Specialization Disjoint & Total):**  
-  Toàn bộ các tác phẩm nghe nhìn phát sóng trên nền tảng bắt buộc phải kế thừa từ thực thể tổng quát `CONTENT` (Ràng buộc tham gia toàn phần - Total Specialization: $\text{Movie} \cup \text{TV\_Episode} = \text{Content}$). Một nội dung chỉ có thể là Phim lẻ (`Movie`) hoặc Tập phim (`TV_Episode`), không thể đồng thời vừa là Phim lẻ vừa là Tập phim (Ràng buộc rời rạc tuyệt đối - Disjoint: $\text{Movie} \cap \text{TV\_Episode} = \emptyset$).
-
+  Toàn bộ các tác phẩm nghe nhìn phát sóng trên nền tảng bắt buộc phải kế thừa từ thực thể tổng quát `CONTENT` (Ràng buộc tham gia toàn phần - Total Specialization: $\text{Movie} \cup \text{TV\_Episode} = \text{Content}$)
+(Ràng buộc rời rạc tuyệt đối - Disjoint: $\text{Movie} \cap \text{TV\_Episode} = \emptyset$)
 * **BR06 (Cấu trúc phân rã Phim bộ truyền hình - TV Series Hierarchy):**  
   Một Phim bộ (`TV_SERIES`) bao gồm từ 1 đến nhiều Mùa phim (`SEASON`). Mỗi Mùa phim bao gồm từ 1 đến nhiều Tập phim (`TV_EPISODE`). Một Tập phim là một thực thể yếu/phụ thuộc tồn tại, không thể phát hành độc lập ngoài ngữ cảnh của một Season và Series cụ thể.
 
@@ -54,7 +54,7 @@ Các quy tắc nghiệp vụ dưới đây định nghĩa logic vận hành và 
 * **BR09 (Theo dõi tiến trình phát liên tục - Continuous Playback & Watch History):**  
   Khi một Profile bắt đầu xem một Content (Movie hoặc Episode), hệ thống tự động khởi tạo hoặc cập nhật bản ghi trong Lịch sử xem (`Watch History`):
   * Lưu trữ mốc thời gian tạm dừng xem (`last_watched_timestamp`) và thời lượng thực tế đã xem (`watched_duration_seconds`).
-  * Nếu thời lượng đã xem đạt từ **90%** tổng thời lượng nội dung trở lên ($\text{watched\_duration} \ge 0.9 \times \text{duration}$), hệ thống tự động đánh dấu cờ hoàn thành $\text{is\_completed} = \text{TRUE}$.
+  * Nếu thời lượng đã xem đạt từ **90%** tổng thời lượng nội dung trở lên ($\text{watched\_duration} \ge 0.9 \times \text{duration}$), hệ thống tự động đánh dấu cờ hoàn thành $\text{is\_completed} = \text{TRUE}$., hệ thống tự động đánh dấu cờ hoàn thành $\text{is\_completed} = \text{TRUE}$.
   * Khi người dùng mở lại nội dung, hệ thống cho phép tiếp tục phát từ mốc thời gian đã tạm dừng (Resume playback).
 
 ---
