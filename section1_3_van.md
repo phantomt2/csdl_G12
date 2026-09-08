@@ -63,13 +63,6 @@ Các quy tắc nghiệp vụ dưới đây định nghĩa logic vận hành và 
 
 ---
 
-### Nhóm 5: Tương quan & Đề xuất Nội dung (Content Similarity)
-
-* **BR10 (Liên kết nội dung tương đồng - Recursive Similarity):**  
-  Một Content có thể liên kết với nhiều Content khác dưới dạng quan hệ đệ quy (Self-referencing Relationship) với điểm số tương đồng đối xứng (`similarity_score` từ 0.00 đến 1.00) để phục vụ cho tính năng hiển thị danh sách "Nội dung tương tự" (More Like This).
-
----
-
 ## 1.3.2 TÍNH TOÀN VẸN VÀ BẢO MẬT (DATA INTEGRITY & SECURITY CONSTRAINTS)
 
 Nhằm đảm bảo cơ sở dữ liệu luôn ở trạng thái nhất quán, không chứa dữ liệu rác hoặc mâu thuẫn, hệ thống thiết lập 3 nhóm ràng buộc cốt lõi:
