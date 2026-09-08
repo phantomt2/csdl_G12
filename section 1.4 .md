@@ -41,8 +41,7 @@ Khác với yêu cầu phần mềm hướng giao diện (UI-driven requirements
 * **Bảng dữ liệu tương tác:** `PROFILE`, `ACCOUNT`, `SUBSCRIPTION_TIER`, `WATCHLIST`, `WATCH_HISTORY`.
 * **Tiền điều kiện (Preconditions):**
   * `account_id` hợp lệ và đang ở trạng thái `billing_status = 'ACTIVE'`.
-  * Tổng số lượng hồ sơ con hiện có của tài khoản phải nhỏ hơn định mức cho phép:
-    $$\text{COUNT(profile\_id)} < \text{SUBSCRIPTION\_TIER.max\_profiles}$$
+  * Tổng số lượng hồ sơ con hiện có của tài khoản phải nhỏ hơn định mức cho phép: `COUNT(profile_id) < SUBSCRIPTION_TIER.max_profiles`.
 * **Trình tự giao tác dữ liệu (Data Transaction Flow):**
   * **Thêm mới hồ sơ (Create Profile):**
     1. Kiểm tra hạn mức `max_profiles` từ bảng `SUBSCRIPTION_TIER` thông qua liên kết khóa ngoại của `ACCOUNT`.
@@ -80,8 +79,7 @@ Khác với yêu cầu phần mềm hướng giao diện (UI-driven requirements
 * **Bảng dữ liệu tương tác:** `WATCHLIST`, `PROFILE`, `CONTENT`.
 * **Tiền điều kiện (Preconditions):**
   * `profile_id` và `content_id` phải tồn tại hợp lệ trong hệ thống.
-  * Phân loại độ tuổi của nội dung phải thỏa mãn ngưỡng kiểm soát phụ huynh của hồ sơ:
-    $$\text{CONTENT.age\_classification} \le \text{PROFILE.maturity\_rating}$$
+  * Phân loại độ tuổi của nội dung phải thỏa mãn ngưỡng kiểm soát phụ huynh của hồ sơ: `CONTENT.age_classification <= PROFILE.maturity_rating`.
 * **Trình tự giao tác dữ liệu (Data Transaction Flow):**
   * **Thêm nội dung vào danh sách (Bookmark Content):**
     1. Kiểm tra sự tồn tại của cặp `(profile_id, content_id)` trong bảng `WATCHLIST`.
@@ -114,7 +112,7 @@ Khác với yêu cầu phần mềm hướng giao diện (UI-driven requirements
        WHERE profile_id = :profile_id AND content_id = :content_id;
        ```
   3. **Đánh giá điều kiện hoàn thành:** Đối chiếu thời lượng đã xem với tổng thời lượng tác phẩm (`total_duration` lấy từ `MOVIE` hoặc `TV_EPISODE`):
-     * Nếu $\text{watched\_duration\_seconds} \ge 0.9 \times (\text{duration\_minutes} \times 60)$:
+     * Nếu `watched_duration_seconds >= 0.9 * (duration_minutes * 60)`:
        Tự động kích hoạt cập nhật cờ hoàn thành `is_completed = TRUE`.
   4. **Truy vấn phát tiếp nối (Resume Playback Query):** Khi người dùng mở lại nội dung, hệ thống thực hiện `SELECT watched_duration_seconds` để định vị thanh tua video.
 * **Hậu điều kiện (Postconditions):** Trạng thái tiêu thụ nội dung và mốc thời gian tạm dừng mới nhất được lưu vết chính xác, phục vụ tính năng xem tiếp liên tục trên mọi thiết bị.
@@ -136,8 +134,8 @@ Khác với yêu cầu phần mềm hướng giao diện (UI-driven requirements
      WHERE account_id = :account_id AND session_status = 'ACTIVE';
      ```
   4. **Kiểm tra điều kiện biên (Boundary Check):**
-     * **Nếu $\text{COUNT} \ge \text{max\_concurrent\_streams}$:** Hủy bỏ giao tác, từ chối cấp phép luồng phát và trả về thông báo lỗi vượt quá số thiết bị cho phép.
-     * **Nếu $\text{COUNT} < \text{max\_concurrent\_streams}$:** Chấp thuận phát sóng, khởi tạo bản ghi mới vào `STREAMING_SESSION` gồm: `session_id`, `account_id`, `profile_id`, `content_id`, `device_name`, `started_at = CURRENT_TIMESTAMP`, `session_status = 'ACTIVE'`.
+     * **Nếu `COUNT >= max_concurrent_streams`:** Hủy bỏ giao tác, từ chối cấp phép luồng phát và trả về thông báo lỗi vượt quá số thiết bị cho phép.
+     * **Nếu `COUNT < max_concurrent_streams`:** Chấp thuận phát sóng, khởi tạo bản ghi mới vào `STREAMING_SESSION` gồm: `session_id`, `account_id`, `profile_id`, `content_id`, `device_name`, `started_at = CURRENT_TIMESTAMP`, `session_status = 'ACTIVE'`.
   5. **Đóng phiên (Terminate Session):** Khi người dùng tắt ứng dụng hoặc dừng phát, cập nhật bản ghi tương ứng sang `session_status = 'TERMINATED'` và lưu mốc `ended_at = CURRENT_TIMESTAMP`.
 * **Hậu điều kiện (Postconditions):** Luồng phát video được giám sát chặt chẽ theo thời gian thực; tài nguyên phát sóng không vượt quá định mức thương mại của gói cước.
 * **Ràng buộc liên đới:** BR03 (Giới hạn luồng phát đồng thời).
