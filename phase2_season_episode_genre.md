@@ -1,5 +1,4 @@
 # BÁO CÁO GIAI ĐOẠN 2: THIẾT KẾ LUẬN LÝ & CHUẨN HÓA CƠ SỞ DỮ LIỆU
-**Hệ thống:** Nền tảng xem phim trực tuyến theo yêu cầu (Mini-Netflix) - Nhóm G12  
 **Đối tượng phân tích:** `SEASON`, `TV_EPISODE`, `GENRE`, `CONTENT_GENRE`  
 **Tiêu chuẩn áp dụng:**  
 - Thiết kế luận lý: ISO/IEC 19505 (Relational Mapping)  
