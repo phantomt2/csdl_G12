@@ -13,27 +13,27 @@
 ### 1. Ký hiệu hình thức Lược đồ quan hệ
 
 * **Quan hệ `SEASON`** (Ánh xạ từ Thực thể yếu phụ thuộc tồn tại vào `TV_SERIES`):
-  $$\text{SEASON}(\underline{\text{season\_id}}, \text{content\_id}, \text{season\_number}, \text{season\_name}, \text{release\_date})$$
+  $$\text{SEASON}(\underline{\text{season\\_id}}, \text{content\\_id}, \text{season\\_number}, \text{season\\_name}, \text{release\\_date})$$
   * Khóa chính (PK): `season_id`
-  * Khóa ngoại (FK): `content_id` $\rightarrow \text{TV\_SERIES}(\text{content\_id})$
+  * Khóa ngoại (FK): `content_id` $\rightarrow \text{TV\\_SERIES}(\text{content\\_id})$
   * Khóa tự nhiên phụ (Alternate Key): `(content_id, season_number)`
 
 * **Quan hệ `TV_EPISODE`** (Ánh xạ từ Thực thể yếu phụ thuộc vào `SEASON` qua Identifying Relationship):
-  $$\text{TV\_EPISODE}(\underline{\text{episode\_id}}, \text{season\_id}, \text{episode\_number}, \text{episode\_title}, \text{duration\_minutes}, \text{video\_file\_size\_gb})$$
+  $$\text{TV\\_EPISODE}(\underline{\text{episode\\_id}}, \text{season\\_id}, \text{episode\\_number}, \text{episode\\_title}, \text{duration\\_minutes}, \text{video\\_file\\_size\\_gb})$$
   * Khóa chính (PK): `episode_id`
-  * Khóa ngoại (FK): `season_id` $\rightarrow \text{SEASON}(\text{season\_id})$
+  * Khóa ngoại (FK): `season_id` $\rightarrow \text{SEASON}(\text{season\\_id})$
   * Khóa tự nhiên phụ (Alternate Key): `(season_id, episode_number)`
 
 * **Quan hệ `GENRE`** (Ánh xạ từ Thực thể mạnh / Bảng danh mục phân loại Lookup Entity):
-  $$\text{GENRE}(\underline{\text{genre\_id}}, \text{genre\_name})$$
+  $$\text{GENRE}(\underline{\text{genre\\_id}}, \text{genre\\_name})$$
   * Khóa chính (PK): `genre_id`
   * Khóa duy nhất (Unique Key): `genre_name`
 
 * **Quan hệ `CONTENT_GENRE`** (Ánh xạ từ Mối quan hệ Nhiều - Nhiều $M:N$ và giải quyết thuộc tính đa trị `Genre` của `CONTENT`):
-  $$\text{CONTENT\_GENRE}(\underline{\text{content\_id}}, \underline{\text{genre\_id}})$$
+  $$\text{CONTENT\\_GENRE}(\underline{\text{content\\_id}}, \underline{\text{genre\\_id}})$$
   * Khóa chính tổng hợp (Composite PK): `(content_id, genre_id)`
-  * Khóa ngoại 1 (FK1): `content_id` $\rightarrow \text{CONTENT}(\text{content\_id})$
-  * Khóa ngoại 2 (FK2): `genre_id` $\rightarrow \text{GENRE}(\text{genre\_id})$
+  * Khóa ngoại 1 (FK1): `content_id` $\rightarrow \text{CONTENT}(\text{content\\_id})$
+  * Khóa ngoại 2 (FK2): `genre_id` $\rightarrow \text{GENRE}(\text{genre\\_id})$
 
 ---
 
