@@ -61,7 +61,7 @@
 * **Tập Khóa ứng viên (Candidate Keys):**
   $$(\text{genre\\_id})^+ = \{\text{genre\\_id}, \text{genre\\_name}\} = R \Rightarrow CK_1 = \{\text{genre\\_id}\}$$
   $$(\text{genre\\_name})^+ = \{\text{genre\\_name}, \text{genre\\_id}\} = R \Rightarrow CK_2 = \{\text{genre\\_name}\}$$
-* **Khóa chính được chọn:** $PK = \text{genre\_id}$
+* **Khóa chính được chọn:** $PK = \text{genre\\_id}$
 * **Tiến trình chứng minh các dạng chuẩn:**
   1. **Dạng chuẩn 1 (1NF):** Thuộc tính `genre_id` (số nguyên) và `genre_name` (chuỗi ký tự) đều mang giá trị đơn nguyên tố (Atomic values), không chứa thuộc tính phức hợp hay tập giá trị lặp $\Rightarrow$ **Đạt 1NF**.
   2. **Dạng chuẩn 2 (2NF):** Khóa chính chỉ gồm 1 thuộc tính đơn (`genre_id`). Mọi thuộc tính không khóa đều phụ thuộc hàm đầy đủ vào khóa chính, không tồn tại phụ thuộc từng phần $\Rightarrow$ **Đạt 2NF**.
