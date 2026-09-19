@@ -177,5 +177,5 @@
 | `video_file_size_gb`| `DECIMAL(6,2)`| None | **NO** | None | Dung lượng tệp video tính bằng Gigabyte. Ràng buộc miền: `CHECK (video_file_size_gb > 0.00)`. |
 
 * **Ràng buộc cấp bảng (Table-level Constraint):**
-  $$\text{CONSTRAINT } \text{uk\\_season\\_episode\\_number} \text{ UNIQUE (season\\_id, episode_number)}$$
+  $$\text{CONSTRAINT } \text{uk\\_season\\_episode\\_number} \text{ UNIQUE (season\\_id, episode\\_number)}$$
   *(Đảm bảo trong cùng một mùa phim không thể có hai tập trùng số thứ tự).*
