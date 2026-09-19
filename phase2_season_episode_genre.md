@@ -8,18 +8,6 @@
 
 ---
 
-## BẢNG KIỂM TRA ĐÁNH GIÁ TIÊU CHÍ (VERIFICATION CHECKLIST)
-
-| Hạng mục yêu cầu (Phase 2 Deliverables) | Trạng thái | Diễn giải minh chứng kỹ thuật |
-| :--- | :---: | :--- |
-| **1. Ánh xạ lược đồ quan hệ (Relational Mapping)** | **ĐẠT** | Biểu diễn chuẩn hình thức $R(\underline{PK}, FK, ...)$, xử lý chính xác thực thể yếu lồng nhau và quan hệ $M:N$. |
-| **2. Toàn vẹn tham chiếu (Referential Integrity)** | **ĐẠT** | Định nghĩa chi tiết khóa ngoại (FK), bảng tham chiếu và hành vi `ON DELETE CASCADE` / `RESTRICT`. |
-| **3. Bám sát BR & FR của Phase 1** | **ĐẠT** | Tuân thủ BR-04 (Episode phụ thuộc Season), BR-08 (Season thuộc Series) và bảng liên kết Content-Genre (Table 1). |
-| **4. Chứng minh chuẩn hóa (1NF $\rightarrow$ 3NF/BCNF)** | **ĐẠT** | Liệt kê đầy đủ tập Phụ thuộc hàm ($F$), tìm Khóa ứng viên ($CK$), chứng minh không vi phạm 1NF, 2NF, 3NF và đạt BCNF. |
-| **5. Từ điển dữ liệu (ISO/IEC 11179)** | **ĐẠT** | Đủ 6 cột chuẩn: `Attribute Name`, `Data Type`, `Key Type`, `Nullable?`, `Default Value`, `Business Rules / Constraints`. |
-
----
-
 ## PHẦN I: ÁNH XẠ LƯỢC ĐỒ QUAN HỆ & RÀNG BUỘC TOÀN VẸN (RELATIONAL SCHEMA MAPPING)
 
 ### 1. Ký hiệu hình thức Lược đồ quan hệ
