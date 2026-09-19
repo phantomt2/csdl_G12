@@ -54,13 +54,13 @@
 
 ### 1. Chuẩn hóa quan hệ `GENRE`
 
-* **Tập thuộc tính:** $R = \{\text{genre\_id}, \text{genre\_name}\}$
+* **Tập thuộc tính:** $R = \{\text{genre\\_id}, \text{genre\\_name}\}$
 * **Tập Phụ thuộc hàm ($F$):**
-  $$f_1: \text{genre\_id} \rightarrow \text{genre\_name}$$
-  $$f_2: \text{genre\_name} \rightarrow \text{genre\_id}$$
+  $$f_1: \text{genre\\_id} \rightarrow \text{genre\\_name}$$
+  $$f_2: \text{genre\\_name} \rightarrow \text{genre\\_id}$$
 * **Tập Khóa ứng viên (Candidate Keys):**
-  $$(\text{genre\_id})^+ = \{\text{genre\_id}, \text{genre\_name}\} = R \Rightarrow CK_1 = \{\text{genre\_id}\}$$
-  $$(\text{genre\_name})^+ = \{\text{genre\_name}, \text{genre\_id}\} = R \Rightarrow CK_2 = \{\text{genre\_name}\}$$
+  $$(\text{genre\\_id})^+ = \{\text{genre\\_id}, \text{genre\\_name}\} = R \Rightarrow CK_1 = \{\text{genre\\_id}\}$$
+  $$(\text{genre\\_name})^+ = \{\text{genre\\_name}, \text{genre\\_id}\} = R \Rightarrow CK_2 = \{\text{genre\\_name}\}$$
 * **Khóa chính được chọn:** $PK = \text{genre\_id}$
 * **Tiến trình chứng minh các dạng chuẩn:**
   1. **Dạng chuẩn 1 (1NF):** Thuộc tính `genre_id` (số nguyên) và `genre_name` (chuỗi ký tự) đều mang giá trị đơn nguyên tố (Atomic values), không chứa thuộc tính phức hợp hay tập giá trị lặp $\Rightarrow$ **Đạt 1NF**.
@@ -72,10 +72,10 @@
 
 ### 2. Chuẩn hóa quan hệ `CONTENT_GENRE`
 
-* **Tập thuộc tính:** $R = \{\text{content\_id}, \text{genre\_id}\}$
+* **Tập thuộc tính:** $R = \{\text{content\\_id}, \text{genre\\_id}\}$
 * **Tập Phụ thuộc hàm ($F$):**
-  $$F = \emptyset \quad (\text{chỉ tồn tại phụ thuộc hàm tầm thường: } \{\text{content\_id}, \text{genre\_id}\} \rightarrow \{\text{content\_id}, \text{genre\_id}\})$$
-* **Khóa chính (PK):** $PK = \{\text{content\_id}, \text{genre\_id}\}$
+  $$F = \emptyset \quad (\text{chỉ tồn tại phụ thuộc hàm tầm thường: } \{\text{content\\_id}, \text{genre\\_id}\} \rightarrow \{\text{content\\_id}, \text{genre\\_id}\})$$
+* **Khóa chính (PK):** $PK = \{\text{content\\_id}, \text{genre\\_id}\}$
 * **Tiến trình chứng minh các dạng chuẩn:**
   1. **1NF:** Mỗi ô dữ liệu lưu trữ duy nhất một cặp mã định danh số nguyên nguyên tố $\Rightarrow$ **Đạt 1NF**.
   2. **2NF:** Toàn bộ các thuộc tính trong quan hệ đều tham gia vào khóa chính ($R = PK$). Không tồn tại thuộc tính không khóa $\Rightarrow$ Không thể vi phạm phụ thuộc từng phần $\Rightarrow$ **Đạt 2NF**.
@@ -85,39 +85,39 @@
 
 ### 3. Chuẩn hóa quan hệ `SEASON`
 
-* **Tập thuộc tính:** $R = \{\text{season\_id}, \text{content\_id}, \text{season\_number}, \text{season\_name}, \text{release\_date}\}$
+* **Tập thuộc tính:** $R = \{\text{season\\_id}, \text{content\\_id}, \text{season\\_number}, \text{season\\_name}, \text{release\\_date}\}$
 * **Tập Phụ thuộc hàm ($F$):**
-  $$f_1: \text{season\_id} \rightarrow \{\text{content\_id}, \text{season\_number}, \text{season\_name}, \text{release\_date}\}$$
-  $$f_2: \{\text{content\_id}, \text{season\_number}\} \rightarrow \{\text{season\_id}, \text{season\_name}, \text{release\_date}\}$$
+  $$f_1: \text{season\\_id} \rightarrow \{\text{content\\_id}, \text{season\\_number}, \text{season\\_name}, \text{release\\_date}\}$$
+  $$f_2: \{\text{content\\_id}, \text{season\\_number}\} \rightarrow \{\text{season\\_id}, \text{season\\_name}, \text{release\\_date}\}$$
 * **Tập Khóa ứng viên (Candidate Keys):**
-  $$CK_1 = \{\text{season\_id}\} \quad (\text{Khóa thay thế - Surrogate Key})$$
-  $$CK_2 = \{\text{content\_id}, \text{season\_number}\} \quad (\text{Khóa tự nhiên - Natural Key})$$
-* **Khóa chính được chọn:** $PK = \text{season\_id}$
-* **Thuộc tính khóa:** $\{\text{season\_id}, \text{content\_id}, \text{season\_number}\}$  
-* **Thuộc tính không khóa:** $\{\text{season\_name}, \text{release\_date}\}$
+  $$CK_1 = \{\text{season\\_id}\} \quad (\text{Khóa thay thế - Surrogate Key})$$
+  $$CK_2 = \{\text{content\\_id}, \text{season\\_number}\} \quad (\text{Khóa tự nhiên - Natural Key})$$
+* **Khóa chính được chọn:** $PK = \text{season\\_id}$
+* **Thuộc tính khóa:** $\{\text{season\\_id}, \text{content\\_id}, \text{season\\_number}\}$  
+* **Thuộc tính không khóa:** $\{\text{season\\_name}, \text{release\\_date}\}$
 * **Tiến trình chứng minh các dạng chuẩn:**
   1. **1NF:** Mọi thuộc tính số mùa, tên mùa, ngày phát hành đều có miền giá trị nguyên tố $\Rightarrow$ **Đạt 1NF**.
-  2. **2NF:** Khóa chính được chọn $\text{season\_id}$ là khóa đơn. Không có thuộc tính không khóa nào phụ thuộc vào một tập con thực sự của $\text{season\_id}$. Xét với $CK_2 = \{\text{content\_id}, \text{season\_number}\}$, cả `season_name` và `release_date` đều phụ thuộc vào toàn bộ cặp (phải biết cả phim và mùa mới biết ngày ra mắt), không phụ thuộc riêng vào `content_id` hay `season_number` $\Rightarrow$ **Đạt 2NF**.
+  2. **2NF:** Khóa chính được chọn $\text{season\\_id}$ là khóa đơn. Không có thuộc tính không khóa nào phụ thuộc vào một tập con thực sự của $\text{season\\_id}$. Xét với $CK_2 = \{\text{content\\_id}, \text{season\\_number}\}$, cả `season_name` và `release_date` đều phụ thuộc vào toàn bộ cặp (phải biết cả phim và mùa mới biết ngày ra mắt), không phụ thuộc riêng vào `content_id` hay `season_number` $\Rightarrow$ **Đạt 2NF**.
   3. **3NF:** Thuộc tính `release_date` và `season_name` phụ thuộc trực tiếp vào khóa chính, không có sự phụ thuộc bắc cầu lẫn nhau (ví dụ: `season_name` không suy ra `release_date`) $\Rightarrow$ **Đạt 3NF**.
-  4. **BCNF:** Trong cả hai phụ thuộc hàm $f_1$ và $f_2$, vế xác định ($\text{season\_id}$ và $\{\text{content\_id}, \text{season\_number}\}$) đều là Siêu khóa $\Rightarrow$ **Đạt BCNF**.
+  4. **BCNF:** Trong cả hai phụ thuộc hàm $f_1$ và $f_2$, vế xác định ($\text{season\\_id}$ và $\{\text{content\\_id}, \text{season\\_number}\}$) đều là Siêu khóa $\Rightarrow$ **Đạt BCNF**.
 
 ---
 
 ### 4. Chuẩn hóa quan hệ `TV_EPISODE`
 
-* **Tập thuộc tính:** $R = \{\text{episode\_id}, \text{season\_id}, \text{episode\_number}, \text{episode\_title}, \text{duration\_minutes}, \text{video\_file\_size\_gb}\}$
+* **Tập thuộc tính:** $R = \{\text{episode\\_id}, \text{season\\_id}, \text{episode\\_number}, \text{episode\\_title}, \text{duration\\_minutes}, \text{video\\_file\\_size\\_gb}\}$
 * **Tập Phụ thuộc hàm ($F$):**
-  $$f_1: \text{episode\_id} \rightarrow \{\text{season\_id}, \text{episode\_number}, \text{episode\_title}, \text{duration\_minutes}, \text{video\_file\_size\_gb}\}$$
-  $$f_2: \{\text{season\_id}, \text{episode\_number}\} \rightarrow \{\text{episode\_id}, \text{episode\_title}, \text{duration\_minutes}, \text{video\_file\_size\_gb}\}$$
+  $$f_1: \text{episode\\_id} \rightarrow \{\text{season\\_id}, \text{episode\\_number}, \text{episode\\_title}, \text{duration\\_minutes}, \text{video\\_file\\_size\\_gb}\}$$
+  $$f_2: \{\text{season\\_id}, \text{episode\\_number}\} \rightarrow \{\text{episode\\_id}, \text{episode\\_title}, \text{duration\\_minutes}, \text{video\\_file\\_size\\_gb}\}$$
 * **Tập Khóa ứng viên (Candidate Keys):**
-  $$CK_1 = \{\text{episode\_id}\}$$
-  $$CK_2 = \{\text{season\_id}, \text{episode\_number}\}$$
-* **Khóa chính được chọn:** $PK = \text{episode\_id}$
-* **Thuộc tính khóa:** $\{\text{episode\_id}, \text{season\_id}, \text{episode\_number}\}$  
-* **Thuộc tính không khóa:** $\{\text{episode\_title}, \text{duration\_minutes}, \text{video\_file\_size\_gb}\}$
+  $$CK_1 = \{\text{episode\\_id}\}$$
+  $$CK_2 = \{\text{season\\_id}, \text{episode\\_number}\}$$
+* **Khóa chính được chọn:** $PK = \text{episode\\_id}$
+* **Thuộc tính khóa:** $\{\text{episode\\_id}, \text{season\\_id}, \text{episode\\_number}\}$  
+* **Thuộc tính không khóa:** $\{\text{episode\\_title}, \text{duration\\_minutes}, \text{video\\_file\\_size\\_gb}\}$
 * **Tiến trình chứng minh các dạng chuẩn:**
   1. **1NF:** Mọi thuộc tính tiêu đề tập, thời lượng phát, dung lượng video đều mang giá trị đơn vị, nguyên tố $\Rightarrow$ **Đạt 1NF**.
-  2. **2NF:** Khóa chính $\text{episode\_id}$ là khóa đơn lẻ $\Rightarrow$ Mọi thuộc tính không khóa đều phụ thuộc đầy đủ vào $\text{episode\_id}$. Xét $CK_2$, các thuộc tính `episode_title`, `duration_minutes`, `video_file_size_gb` phụ thuộc vào toàn bộ cặp $\{\text{season\_id}, \text{episode\_number}\}$, không phụ thuộc một phần $\Rightarrow$ **Đạt 2NF**.
+  2. **2NF:** Khóa chính $\text{episode\\_id}$ là khóa đơn lẻ $\Rightarrow$ Mọi thuộc tính không khóa đều phụ thuộc đầy đủ vào $\text{episode\\_id}$. Xét $CK_2$, các thuộc tính `episode_title`, `duration_minutes`, `video_file_size_gb` phụ thuộc vào toàn bộ cặp $\{\text{season\\_id}, \text{episode\\_number}\}$, không phụ thuộc một phần $\Rightarrow$ **Đạt 2NF**.
   3. **3NF:** Không tồn tại phụ thuộc hàm bắc cầu giữa các thuộc tính không khóa (ví dụ: `duration_minutes` không suy ra `episode_title` hay `video_file_size_gb`) $\Rightarrow$ **Đạt 3NF**.
   4. **BCNF:** Với mọi phụ thuộc hàm không tầm thường trong $F$, vế trái đều là Siêu khóa $\Rightarrow$ **Đạt BCNF**.
 
@@ -159,7 +159,7 @@
 | `release_date` | `DATE` | None | **YES** | NULL | Ngày phát hành chính thức của mùa phim. |
 
 * **Ràng buộc cấp bảng (Table-level Constraint):**
-  $$\text{CONSTRAINT } \text{uk\_series\_season\_number} \text{ UNIQUE (content\_id, season\_number)}$$
+  $$\text{CONSTRAINT } \text{uk\\_series\\_season\\_number} \text{ UNIQUE (content\\_id, season\\_number)}$$
   *(Đảm bảo trong một bộ phim không bao giờ có hai mùa trùng số thứ tự).*
 
 ---
@@ -177,5 +177,5 @@
 | `video_file_size_gb`| `DECIMAL(6,2)`| None | **NO** | None | Dung lượng tệp video tính bằng Gigabyte. Ràng buộc miền: `CHECK (video_file_size_gb > 0.00)`. |
 
 * **Ràng buộc cấp bảng (Table-level Constraint):**
-  $$\text{CONSTRAINT } \text{uk\_season\_episode\_number} \text{ UNIQUE (season\_id, episode_number)}$$
+  $$\text{CONSTRAINT } \text{uk\\_season\\_episode\\_number} \text{ UNIQUE (season\\_id, episode_number)}$$
   *(Đảm bảo trong cùng một mùa phim không thể có hai tập trùng số thứ tự).*
