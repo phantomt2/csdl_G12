@@ -1,18 +1,19 @@
 import os
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory
 import mysql.connector
 from mysql.connector import Error
 
+# Load các biến môi trường từ file .env
+load_dotenv()
+
 app = Flask(__name__, static_folder='static', static_url_path='')
 
-# =====================================================================
-# CẤU HÌNH DATABASE (Sửa lại mật khẩu của bạn ở đây)
-# =====================================================================
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '123',  # <--- SỬA MẬT KHẨU MYSQL CỦA BẠN
-    'database': 'mini_netflix'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'user': os.getenv('DB_USER', 'root'),
+    'password': os.getenv('DB_PASSWORD'), # Lấy từ file .env
+    'database': os.getenv('DB_NAME', 'mini_netflix')
 }
 
 # =====================================================================
