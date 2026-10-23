@@ -1,0 +1,2375 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini-Netflix | Console Quản Trị CSDL & Analytics - Nhóm G12</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        netflixRed: '#E50914',
+                        adminDark: '#0B0F19',
+                        adminCard: '#151D2C',
+                        adminBorder: '#232F45',
+                        adminHover: '#1E293B',
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'Roboto', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #E2E8F0;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232F45;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #E50914;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ===================================================================== -->
+    <!-- 1. BẢO VỆ TRUY CẬP: ACCESS DENIED OVERLAY (CHỈ ADMIN MỚI ĐƯỢC VÀO) -->
+    <!-- ===================================================================== -->
+    <div id="accessDeniedModal" class="hidden fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-adminCard border border-red-500/40 rounded-2xl max-w-lg w-full p-8 text-center space-y-6 shadow-2xl">
+            <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto text-4xl border border-red-500/30">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-2xl font-black text-white">403 - TRUY CẬP BỊ TỪ CHỐI</h2>
+                <p class="text-sm text-gray-300">
+                    Khu vực này là <strong class="text-red-400">Console Quản Trị CSDL độc lập</strong>. Chỉ tài khoản Quản trị viên (Admin) mới có quyền truy cập.
+                </p>
+                <p class="text-xs text-gray-400">
+                    Người dùng thông thường chỉ có quyền trải nghiệm giao diện xem phim trực tuyến.
+                </p>
+            </div>
+            <div class="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="/" class="bg-netflixRed hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Về Trang Đăng Nhập / Phim</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 2. ADMIN HEADER & TOP NAVIGATION -->
+    <!-- ===================================================================== -->
+    <header class="bg-adminCard/90 border-b border-adminBorder sticky top-0 z-40 backdrop-blur-md px-4 md:px-8 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <a href="/admin" class="flex items-center space-x-2.5 text-netflixRed font-black text-xl md:text-2xl tracking-wider hover:opacity-95 transition">
+                <i class="fa-solid fa-database"></i>
+                <span class="text-white">MINI-NETFLIX</span>
+                <span class="text-[11px] font-black uppercase bg-netflixRed text-white px-2 py-0.5 rounded tracking-normal">DBA CONSOLE</span>
+            </a>
+            <div class="hidden lg:flex items-center space-x-2 text-xs text-gray-400 pl-4 border-l border-gray-700">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+                <span>MySQL Connected: <strong class="text-white">mini_netflix (Port 3306)</strong></span>
+            </div>
+        </div>
+
+        <!-- Right Controls -->
+        <div class="flex items-center space-x-3 text-xs md:text-sm">
+            <!-- View User App -->
+            <a href="/" target="_blank" class="bg-adminHover hover:bg-gray-700 border border-adminBorder text-gray-200 px-3.5 py-1.5 rounded-lg transition flex items-center space-x-2">
+                <i class="fa-solid fa-film text-netflixRed"></i>
+                <span class="hidden sm:inline">Xem Giao diện Người dùng</span>
+            </a>
+
+            <!-- Admin Profile Info -->
+            <div class="flex items-center space-x-2.5 bg-adminDark px-3 py-1.5 rounded-lg border border-adminBorder">
+                <div class="w-6 h-6 rounded bg-red-600 text-white flex items-center justify-center font-bold text-xs">A</div>
+                <div class="hidden sm:block text-left">
+                    <div id="adminEmailDisplay" class="font-bold text-xs text-white">admin@netflix.com</div>
+                    <div class="text-[10px] text-gray-400">Database Administrator</div>
+                </div>
+            </div>
+
+            <!-- Logout Button -->
+            <button onclick="handleAdminLogout()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5 font-semibold">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="hidden sm:inline">Đăng xuất</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- 3. ADMIN SUB-NAVIGATION BAR (TABS) -->
+    <!-- ===================================================================== -->
+    <div class="bg-adminDark border-b border-adminBorder px-4 md:px-8 overflow-x-auto hide-scrollbar">
+        <div class="flex space-x-2 py-2.5 min-w-max">
+            <button onclick="switchTab('revenue')" id="tabBtnRevenue" class="admin-tab active bg-netflixRed text-white px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center space-x-2 transition">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Doanh thu & Thuê bao (View)</span>
+            </button>
+            <button onclick="switchTab('queries')" id="tabBtnQueries" class="admin-tab text-gray-400 hover:text-white hover:bg-adminHover px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center space-x-2 transition">
+                <i class="fa-solid fa-filter"></i>
+                <span>Bộ Lọc & Truy Vấn Động (Query Builder)</span>
+            </button>
+            <button onclick="switchTab('users')" id="tabBtnUsers" class="admin-tab text-gray-400 hover:text-white hover:bg-adminHover px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center space-x-2 transition">
+                <i class="fa-solid fa-users"></i>
+                <span>Quản trị Tài khoản (User Accounts)</span>
+            </button>
+            <button onclick="switchTab('content')" id="tabBtnContent" class="admin-tab text-gray-400 hover:text-white hover:bg-adminHover px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center space-x-2 transition">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Quản trị Nội dung EER & DML</span>
+            </button>
+            <button onclick="switchTab('triggers')" id="tabBtnTriggers" class="admin-tab text-gray-400 hover:text-white hover:bg-adminHover px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center space-x-2 transition">
+                <i class="fa-solid fa-shield-virus"></i>
+                <span>Kiểm thử Triggers (BR-01 & BR-09)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 4. MAIN CONTENT CONTAINER -->
+    <!-- ===================================================================== -->
+    <main class="flex-1 p-4 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: DOANH THU & THUÊ BAO (VIEW) -->
+        <!-- ========================================== -->
+        <section id="tabContentRevenue" class="tab-panel space-y-6">
+            <div id="tab-revenue"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-chart-line text-yellow-400"></i>
+                        <span>Báo cáo Doanh thu Thuê bao Định kỳ</span>
+                    </h2>
+                    <p class="text-xs md:text-sm text-gray-400 mt-1">
+                        Dữ liệu tổng hợp thời gian thực được tính toán trực tiếp từ Database View: 
+                        <code class="text-yellow-400 bg-black/60 px-2 py-0.5 rounded font-mono">vw_subscription_revenue_summary</code>
+                    </p>
+                </div>
+                <button onclick="loadRevenueView()" class="self-start md:self-auto bg-adminHover hover:bg-gray-700 border border-adminBorder text-white text-xs px-3.5 py-2 rounded-lg flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-rotate text-yellow-400"></i>
+                    <span>Làm mới số liệu</span>
+                </button>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-2">
+                    <div class="text-xs text-gray-400 font-semibold uppercase flex items-center justify-between">
+                        <span>Tổng Doanh Thu Tháng</span>
+                        <i class="fa-solid fa-money-bill-wave text-green-400 text-base"></i>
+                    </div>
+                    <div id="kpiTotalRevenue" class="text-2xl md:text-3xl font-black text-green-400">Đang tính...</div>
+                    <div class="text-[11px] text-gray-400">Tính trên các tài khoản ACTIVE</div>
+                </div>
+
+                <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-2">
+                    <div class="text-xs text-gray-400 font-semibold uppercase flex items-center justify-between">
+                        <span>Tổng Thuê Bao Hoạt Động</span>
+                        <i class="fa-solid fa-users-viewfinder text-blue-400 text-base"></i>
+                    </div>
+                    <div id="kpiActiveUsers" class="text-2xl md:text-3xl font-black text-blue-400">Đang tính...</div>
+                    <div class="text-[11px] text-gray-400">Thuộc 3 gói cước Basic, Standard, Premium</div>
+                </div>
+
+                <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-2">
+                    <div class="text-xs text-gray-400 font-semibold uppercase flex items-center justify-between">
+                        <span>Gói Cước Đóng Góp Lớn Nhất</span>
+                        <i class="fa-solid fa-crown text-yellow-400 text-base"></i>
+                    </div>
+                    <div id="kpiTopTier" class="text-2xl md:text-3xl font-black text-yellow-400">Đang tính...</div>
+                    <div id="kpiTopTierRevenue" class="text-[11px] text-gray-400">Đóng góp cao nhất tổng doanh thu</div>
+                </div>
+            </div>
+
+            <!-- Revenue Table -->
+            <div class="bg-adminCard border border-adminBorder rounded-xl overflow-hidden shadow-xl">
+                <div class="p-4 border-b border-adminBorder flex items-center justify-between">
+                    <h3 class="font-bold text-sm text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-table-list text-netflixRed"></i>
+                        <span>Chi tiết Phân rã theo Gói Dịch Vụ (Subscription Tiers)</span>
+                    </h3>
+                    <span class="text-xs text-gray-400 font-mono">SELECT * FROM vw_subscription_revenue_summary</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-adminDark text-gray-400 uppercase text-[11px] font-bold border-b border-adminBorder">
+                            <tr>
+                                <th class="p-3.5">Mã Gói (tier_id)</th>
+                                <th class="p-3.5">Tên Gói Cước</th>
+                                <th class="p-3.5">Giá Tháng</th>
+                                <th class="p-3.5">Độ Phân Giải</th>
+                                <th class="p-3.5 text-center">Thuê Bao Kích Hoạt</th>
+                                <th class="p-3.5 text-right">Doanh Thu Dự Kiến (VNĐ)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="revenueTableBody" class="divide-y divide-adminBorder">
+                            <tr><td colspan="6" class="p-6 text-center text-gray-400">Đang tải dữ liệu từ CSDL...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: BỘ LỌC PHÂN TÍCH ĐA CHIỀU & TRUY VẤN ĐỘNG -->
+        <!-- ========================================== -->
+        <section id="tabContentQueries" class="tab-panel hidden space-y-6">
+            <div id="tab-queries"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-filter text-yellow-400"></i>
+                        <span>Bộ Lọc Phân Tích Đa Chiều & Trình Tạo Truy Vấn Động</span>
+                    </h2>
+                    <p class="text-xs md:text-sm text-gray-400 mt-1">
+                        Kết hợp đa điều kiện trên 13 bảng & 2 Views, sinh câu lệnh SQL thời gian thực, thực thi 10 mẫu chuẩn Phase 3 hoặc chạy truy vấn SELECT tùy ý.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SECTION A: BỘ LỌC PHÂN TÍCH ĐA CHIỀU (DYNAMIC MULTI-FILTER BUILDER) -->
+            <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-5 shadow-xl">
+                <div class="border-b border-adminBorder pb-3 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded bg-netflixRed text-white flex items-center justify-center font-bold text-xs">A</span>
+                        <span>Trình Tạo Truy Vấn Đa Chiều (Dynamic Multi-Filter Query Builder)</span>
+                    </h3>
+                    <span class="text-[11px] text-gray-400 bg-adminDark px-2.5 py-1 rounded border border-adminBorder font-mono">
+                        POST /api/admin/query-builder
+                    </span>
+                </div>
+
+                <!-- STEP 1: CHỌN PHÂN HỆ DỮ LIỆU GỐC -->
+                <div class="space-y-2 bg-adminDark/60 p-4 rounded-lg border border-adminBorder">
+                    <label class="block text-xs font-bold text-yellow-400 uppercase tracking-wide">
+                        <i class="fa-solid fa-database mr-1"></i> Bước 1 (Bắt buộc): Chọn Phân Hệ Dữ Liệu Gốc (Data Domain):
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <select id="qbDomain" onchange="handleDomainChange()" class="w-full bg-adminDark border border-adminBorder text-white text-xs md:text-sm rounded-lg p-2.5 focus:border-netflixRed focus:outline-none font-medium">
+                                <option value="content">Kho Nội Dung & Phân Cấp EER (CONTENT ⋈ MOVIE/TV_SERIES ⋈ SEASON ⋈ TV_EPISODE ⋈ GENRE ⋈ LANGUAGE)</option>
+                                <option value="watch_behavior">Hành Vi Xem & Tương Tác (WATCH_HISTORY ⋈ WATCHLIST ⋈ PROFILE ⋈ USER_ACCOUNT ⋈ CONTENT)</option>
+                                <option value="subscription">Tài Khoản, Gói Cước & Doanh Thu (USER_ACCOUNT ⋈ SUBSCRIPTION_TIER ⋈ PROFILE)</option>
+                                <option value="raw_table">Truy Xuất Trực Tiếp 13 Bảng & 2 Views Nguyên Bản (Raw Tables Explorer)</option>
+                            </select>
+                        </div>
+                        <div id="qbRawTableWrapper" class="hidden">
+                            <select id="qbRawTable" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-yellow-500/50 text-yellow-300 text-xs md:text-sm rounded-lg p-2.5 focus:border-yellow-400 focus:outline-none font-mono">
+                                <option value="subscription_tier">Bảng: subscription_tier (3 Gói cước dịch vụ)</option>
+                                <option value="user_account">Bảng: user_account (Tài khoản người dùng)</option>
+                                <option value="profile">Bảng: profile (Hồ sơ người dùng)</option>
+                                <option value="language">Bảng: language (Danh mục ngôn ngữ)</option>
+                                <option value="genre">Bảng: genre (Danh mục thể loại)</option>
+                                <option value="content">Bảng cha: content (Tác phẩm & Phim ảnh)</option>
+                                <option value="content_genre">Bảng liên kết: content_genre (M-N Content & Genre)</option>
+                                <option value="movie">Bảng con: movie (Phim điện ảnh đơn lẻ)</option>
+                                <option value="tv_series">Bảng con: tv_series (Phim bộ nhiều tập)</option>
+                                <option value="season">Bảng thực thể yếu: season (Mùa phát sóng)</option>
+                                <option value="tv_episode">Bảng thực thể yếu: tv_episode (Tập phim)</option>
+                                <option value="watchlist">Bảng: watchlist (Danh sách lưu xem sau)</option>
+                                <option value="watch_history">Bảng: watch_history (Lịch sử & Tiến trình xem)</option>
+                                <option value="vw_content_full_catalog">View 1: vw_content_full_catalog (Toàn bộ danh mục)</option>
+                                <option value="vw_subscription_revenue_summary">View 2: vw_subscription_revenue_summary (Doanh thu thuê bao)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: BỘ LỌC ĐIỀU KIỆN (WHERE) -->
+                <div class="space-y-3 bg-adminDark/60 p-4 rounded-lg border border-adminBorder">
+                    <label class="block text-xs font-bold text-blue-400 uppercase tracking-wide">
+                        <i class="fa-solid fa-filter mr-1"></i> Bước 2: Tùy Chọn Kết Hợp Các Bộ Lọc Điều Kiện (WHERE Clause):
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-xs">
+                        <!-- Content Type -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Loại Nội Dung:</label>
+                            <select id="qbContentType" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả (All)</option>
+                                <option value="MOVIE">MOVIE (Phim lẻ)</option>
+                                <option value="TV_SERIES">TV_SERIES (Phim bộ)</option>
+                            </select>
+                        </div>
+
+                        <!-- Genre -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Thể Loại:</label>
+                            <select id="qbGenreId" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả thể loại</option>
+                            </select>
+                        </div>
+
+                        <!-- Language -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Ngôn Ngữ:</label>
+                            <select id="qbLanguageId" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả ngôn ngữ</option>
+                            </select>
+                        </div>
+
+                        <!-- Rating Age -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Độ Tuổi (rating_age):</label>
+                            <select id="qbRatingAge" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả độ tuổi</option>
+                                <option value="G">G (Mọi lứa tuổi)</option>
+                                <option value="PG">PG (Có hướng dẫn)</option>
+                                <option value="PG-13">PG-13 (Cảnh báo &gt; 13t)</option>
+                                <option value="R">R (Giới hạn &gt; 17t)</option>
+                                <option value="NC-17">NC-17 (Người lớn 18+)</option>
+                            </select>
+                        </div>
+
+                        <!-- Resolution -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Độ Phân Giải:</label>
+                            <select id="qbResolution" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả độ phân giải</option>
+                                <option value="4K">4K UHD</option>
+                                <option value="1080p">Full HD (1080p)</option>
+                                <option value="720p">HD (720p)</option>
+                            </select>
+                        </div>
+
+                        <!-- Tier ID -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Gói Cước (tier):</label>
+                            <select id="qbTierId" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả gói cước</option>
+                                <option value="1">1: Basic (70.000đ)</option>
+                                <option value="2">2: Standard (140.000đ)</option>
+                                <option value="3">3: Premium (220.000đ)</option>
+                            </select>
+                        </div>
+
+                        <!-- Account Status -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Trạng Thái Nick:</label>
+                            <select id="qbAccountStatus" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="ACTIVE">ACTIVE (Hoạt động)</option>
+                                <option value="SUSPENDED">SUSPENDED (Bị khóa)</option>
+                                <option value="CANCELLED">CANCELLED (Đã hủy)</option>
+                            </select>
+                        </div>
+
+                        <!-- Is Kids -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Loại Hồ Sơ (Profile):</label>
+                            <select id="qbIsKids" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả hồ sơ</option>
+                                <option value="1">Chỉ Hồ sơ Trẻ em (Kids = 1)</option>
+                                <option value="0">Chỉ Hồ sơ Người lớn (Kids = 0)</option>
+                            </select>
+                        </div>
+
+                        <!-- Is Completed -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Tiến Độ Xem:</label>
+                            <select id="qbIsCompleted" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả tiến độ</option>
+                                <option value="1">Đã xem hoàn tất (100%)</option>
+                                <option value="0">Đang xem dở dang</option>
+                            </select>
+                        </div>
+
+                        <!-- Country -->
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Quốc Gia (country):</label>
+                            <select id="qbCountry" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Tất cả quốc gia</option>
+                                <option value="VN">VN (Việt Nam)</option>
+                                <option value="US">US (Hoa Kỳ)</option>
+                                <option value="KR">KR (Hàn Quốc)</option>
+                                <option value="JP">JP (Nhật Bản)</option>
+                                <option value="GB">GB (Anh Quốc)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: GOM NHÓM THỐNG KÊ & SẮP XẾP -->
+                <div class="space-y-3 bg-adminDark/60 p-4 rounded-lg border border-adminBorder">
+                    <label class="block text-xs font-bold text-green-400 uppercase tracking-wide">
+                        <i class="fa-solid fa-chart-column mr-1"></i> Bước 3: Gom Nhóm Thống Kê & Giới Hạn (GROUP BY / ORDER BY / LIMIT):
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Chế Độ Hiển Thị & Gom Nhóm:</label>
+                            <select id="qbGroupBy" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="">Xem từng bản ghi chi tiết (Detail Rows)</option>
+                                <option value="genre">Thống kê theo Thể loại (GROUP BY genre)</option>
+                                <option value="language">Thống kê theo Ngôn ngữ (GROUP BY language)</option>
+                                <option value="content_type">Thống kê theo Loại nội dung (MOVIE vs TV_SERIES)</option>
+                                <option value="rating_age">Thống kê theo Nhãn độ tuổi (G, PG, PG-13, R, NC-17)</option>
+                                <option value="tier">Thống kê theo Gói cước (GROUP BY subscription_tier)</option>
+                                <option value="country">Thống kê theo Quốc gia (GROUP BY country_code)</option>
+                                <option value="content">Thống kê theo Tác phẩm (GROUP BY content_id)</option>
+                                <option value="profile">Thống kê theo Hồ sơ người dùng (GROUP BY profile_id)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-gray-400 font-semibold">Thứ Tự Sắp Xếp (Sort Direction):</label>
+                            <select id="qbSortDir" onchange="updateQueryBuilderPreviewSql()" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed">
+                                <option value="DESC">Giảm dần (DESC - Mới nhất / Lớn nhất trước)</option>
+                                <option value="ASC">Tăng dần (ASC - Cũ nhất / Nhỏ nhất trước)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <label class="text-gray-400 font-semibold">Số Bản Ghi Tối Đa (LIMIT):</label>
+                                <span class="text-[11px] text-gray-500 font-mono">Tối đa 300</span>
+                            </div>
+                            <div class="relative">
+                                <input type="number" id="qbLimit" min="1" max="300" value="50" oninput="handleQbLimitInput()" onchange="handleQbLimitInput(true)" class="w-full bg-adminDark border border-adminBorder rounded p-2 text-white focus:outline-none focus:border-netflixRed font-mono font-bold text-sm">
+                                <span class="absolute right-3 top-2 text-xs text-gray-500 pointer-events-none">bản ghi</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                <span class="text-[10px] text-gray-400 uppercase font-semibold mr-0.5">Nhanh:</span>
+                                <button type="button" onclick="setQbLimit(10)" class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-adminDark hover:bg-zinc-700 text-gray-300 hover:text-white border border-adminBorder transition">10</button>
+                                <button type="button" onclick="setQbLimit(50)" class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-adminDark hover:bg-zinc-700 text-gray-300 hover:text-white border border-adminBorder transition">50</button>
+                                <button type="button" onclick="setQbLimit(100)" class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-adminDark hover:bg-zinc-700 text-gray-300 hover:text-white border border-adminBorder transition">100</button>
+                                <button type="button" onclick="setQbLimit(200)" class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-adminDark hover:bg-zinc-700 text-gray-300 hover:text-white border border-adminBorder transition">200</button>
+                                <button type="button" onclick="setQbLimit(300)" class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-netflixRed/20 hover:bg-netflixRed text-red-300 hover:text-white border border-netflixRed/50 transition">300 (Max)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS BAR -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="executeDynamicQueryBuilder()" id="runQueryBuilderBtn" class="bg-netflixRed hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-lg text-xs md:text-sm transition flex items-center space-x-2 shadow-lg">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Thực Thi Bộ Lọc (Pull Data)</span>
+                        </button>
+                        <button onclick="resetQueryBuilderFilters()" id="resetQueryBuilderBtn" class="bg-adminDark hover:bg-gray-800 border border-adminBorder text-gray-300 font-semibold py-2.5 px-4 rounded-lg text-xs md:text-sm transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Reset Bộ Lọc</span>
+                        </button>
+                    </div>
+                    <button onclick="exportCurrentQueryResultsCSV()" id="exportCsvBtn" class="bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/40 font-semibold py-2.5 px-4 rounded-lg text-xs md:text-sm transition flex items-center space-x-2">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Xuất Tệp CSV (Export)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECTION B: 10 MẪU TRUY VẤN CHUẨN BÁO CÁO PHASE 3 (PRESETS) -->
+            <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-4 shadow-xl">
+                <div class="border-b border-adminBorder pb-3 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded bg-yellow-500 text-black flex items-center justify-center font-bold text-xs">B</span>
+                        <span>10 Mẫu Truy Vấn Báo Cáo Chuẩn Phase 3 (03_queries.sql Quick Presets)</span>
+                    </h3>
+                    <span class="text-[11px] text-gray-400 bg-adminDark px-2.5 py-1 rounded border border-adminBorder font-mono">
+                        GET /api/admin/queries
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                    <div class="md:col-span-3 space-y-1.5">
+                        <label class="block text-xs font-bold text-gray-300 uppercase">Chọn Mẫu Truy Vấn Phase 3 Đồng Bộ Từ Backend:</label>
+                        <select id="querySelect" onchange="handlePresetQueryChange()" class="w-full bg-adminDark border border-adminBorder text-white text-xs md:text-sm rounded-lg p-2.5 focus:border-yellow-400 focus:outline-none font-medium">
+                            <option value="">Đang tải danh sách 10 câu truy vấn từ server...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="executeSelectedQuery()" id="btnExecuteQuery" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2.5 px-4 rounded-lg text-xs md:text-sm transition flex items-center justify-center space-x-2 shadow-lg">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Chạy Mẫu Phase 3</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Query Details Badge -->
+                <div class="bg-adminDark/80 border border-adminBorder rounded-lg p-3.5 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-adminBorder pb-2">
+                        <div class="text-xs font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-circle-info text-blue-400"></i>
+                            <span id="queryTitleDisplay">Chọn câu truy vấn để xem giải thích nghiệp vụ</span>
+                        </div>
+                    </div>
+                    <p id="queryDescDisplay" class="text-xs text-gray-300">
+                        Hệ thống sẽ nạp nguyên bản câu lệnh SQL từ file 03_queries.sql được cấu hình trên máy chủ.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SECTION C: KHUNG SQL TRỰC TIẾP & TRÌNH CHẠY LỆNH READ-ONLY (LIVE SQL RUNNER) -->
+            <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-4 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-adminBorder pb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded bg-blue-500 text-white flex items-center justify-center font-bold text-xs">C</span>
+                        <h3 class="text-sm font-bold text-white">Khung SQL Trực Tiếp & Trình Chạy Lệnh Tùy Chỉnh (Live SQL Sandbox)</h3>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="queryExecutionTimeBadge" class="hidden bg-green-500/10 text-green-400 border border-green-500/30 px-2.5 py-1 rounded text-xs font-mono font-bold">0 ms</span>
+                        <span id="queryRowCountBadge" class="hidden bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded text-xs font-mono font-bold">0 dòng</span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-400">
+                    Khung dưới đây hiển thị chính xác câu lệnh SQL được sinh động từ <strong>Bộ Lọc Phân Tích (Mục A)</strong> hoặc nạp từ <strong>Mẫu Phase 3 (Mục B)</strong>. Bạn có thể tự do gõ hoặc chỉnh sửa câu lệnh <code>SELECT / EXPLAIN</code> rồi bấm nút chạy trực tiếp trên CSDL MySQL!
+                </p>
+
+                <div class="relative">
+                    <textarea id="customSqlEditor" rows="7" class="w-full bg-black/90 text-green-300 p-4 rounded-lg font-mono text-xs md:text-sm border border-adminBorder focus:border-yellow-400 focus:outline-none resize-y leading-relaxed" spellcheck="false" placeholder="-- Câu lệnh SQL sẽ tự động hiển thị tại đây khi bạn chọn bộ lọc hoặc mẫu truy vấn..."></textarea>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <button onclick="executeCustomSqlRunner()" id="runCustomSqlBtn" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2.5 px-5 rounded-lg text-xs md:text-sm transition flex items-center space-x-2 shadow-lg">
+                        <i class="fa-solid fa-terminal"></i>
+                        <span>Chạy Câu Lệnh SELECT Tùy Chỉnh</span>
+                    </button>
+                    <button onclick="copyCustomSql()" id="copySqlBtn" class="bg-adminDark hover:bg-gray-800 border border-adminBorder text-gray-300 font-semibold py-2 px-3.5 rounded-lg text-xs transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-copy"></i>
+                        <span>Sao Chép SQL</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SHARED QUERY RESULT TABLE -->
+            <div class="bg-adminCard border border-adminBorder rounded-xl overflow-hidden shadow-xl">
+                <div class="p-4 border-b border-adminBorder flex items-center justify-between">
+                    <h3 class="font-bold text-sm text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-table text-yellow-400"></i>
+                        <span>Kết Quả Dữ Liệu Thời Gian Thực (Live Query Execution Output)</span>
+                    </h3>
+                    <div class="flex items-center space-x-2">
+                        <span id="queryResultRowsBadge" class="bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded text-xs font-mono font-bold">0 bản ghi</span>
+                        <button onclick="exportCurrentQueryResultsCSV()" class="bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Tải CSV</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-[500px]">
+                    <table id="queryResultTable" class="w-full text-left text-xs md:text-sm">
+                        <thead id="queryResultHead" class="bg-adminDark text-gray-400 uppercase text-[11px] font-bold border-b border-adminBorder sticky top-0">
+                            <tr><th class="p-3.5">Chưa có kết quả</th></tr>
+                        </thead>
+                        <tbody id="queryResultBody" class="divide-y divide-adminBorder">
+                            <tr><td class="p-8 text-center text-gray-400">Chọn bộ lọc và bấm "Thực Thi Bộ Lọc" hoặc chọn Mẫu Phase 3 để xem dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: QUẢN TRỊ TÀI KHOẢN (USER ACCOUNTS) -->
+        <!-- ========================================== -->
+        <section id="tabContentUsers" class="tab-panel hidden space-y-6">
+            <div id="tab-users"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-users text-blue-400"></i>
+                        <span>Quản Trị Tài Khoản Khách Hàng (User Accounts - FR-01, BR-05)</span>
+                    </h2>
+                    <p class="text-xs md:text-sm text-gray-400 mt-1">
+                        Kiểm soát trạng thái tài khoản (ACTIVE / SUSPENDED), hạn mức profile và điều chỉnh gói dịch vụ (Subscription Tier) thời gian thực.
+                    </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input id="userSearchInput" oninput="filterAdminUsers()" type="text" placeholder="Tìm theo email hoặc ID..." class="bg-adminDark border border-adminBorder rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-netflixRed w-48 md:w-64">
+                    <select id="userStatusFilter" onchange="filterAdminUsers()" class="bg-adminDark border border-adminBorder rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-netflixRed">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="ACTIVE">ACTIVE (Hoạt động)</option>
+                        <option value="SUSPENDED">SUSPENDED (Bị khóa)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="bg-adminCard border border-adminBorder rounded-xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto max-h-[550px]">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-adminDark text-gray-400 uppercase text-[11px] font-bold border-b border-adminBorder sticky top-0">
+                            <tr>
+                                <th class="p-3.5">Mã ID</th>
+                                <th class="p-3.5">Email Tài Khoản</th>
+                                <th class="p-3.5">Gói Cước & Đổi Gói (BR-05)</th>
+                                <th class="p-3.5">Ngày Đăng Ký</th>
+                                <th class="p-3.5 text-center">Số Hồ Sơ (Profiles)</th>
+                                <th class="p-3.5 text-center">Trạng Thái</th>
+                                <th class="p-3.5 text-right">Khóa / Mở Khóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminUsersTableBody" class="divide-y divide-adminBorder">
+                            <tr><td colspan="7" class="p-6 text-center text-gray-400">Đang tải danh sách tài khoản...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: QUẢN TRỊ NỘI DUNG EER & DANH MỤC DML -->
+        <!-- ========================================== -->
+        <section id="tabContentContent" class="tab-panel hidden space-y-6">
+            <div id="tab-content"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-layer-group text-netflixRed"></i>
+                        <span>Quản Trị Danh Mục Phân Cấp EER & Thao Tác DML (FR-03, FR-06, FR-07)</span>
+                    </h2>
+                    <p class="text-xs md:text-sm text-gray-400 mt-1">
+                        Hỗ trợ đầy đủ INSERT/DELETE trên mô hình phân cấp: <code>CONTENT</code> &rarr; <code>MOVIE / TV_SERIES</code> &rarr; <code>SEASON</code> &rarr; <code>TV_EPISODE</code>, Thể loại và Ngôn ngữ.
+                    </p>
+                </div>
+            </div>
+
+            <!-- TOP GRID: FORM THÊM CONTENT + FORMS PHỤ (SEASON, EPISODE, GENRE, LANGUAGE) -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- COL 1 & 2: FORM THÊM NỘI DUNG MỚI (CONTENT + MOVIE / TV_SERIES) -->
+                <div class="lg:col-span-2 bg-adminCard border border-adminBorder p-6 rounded-xl space-y-5 shadow-xl">
+                    <div class="border-b border-adminBorder pb-3 flex items-center justify-between">
+                        <h3 class="font-bold text-white text-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-plus-circle text-netflixRed"></i>
+                            <span>1. Thêm Tác Phẩm Mới (CONTENT &rarr; MOVIE / TV_SERIES)</span>
+                        </h3>
+                        <span class="text-[11px] text-gray-400 font-mono">POST /api/admin/content</span>
+                    </div>
+
+                    <form id="newContentForm" onsubmit="handleCreateContent(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-300 uppercase">Tiêu Đề Phim / Series (title) *</label>
+                                <input id="newContentTitle" type="text" required placeholder="Ví dụ: Squid Game (Trò Chơi Con Mực)" class="w-full bg-adminDark border border-adminBorder rounded-lg p-2.5 text-xs md:text-sm text-white focus:outline-none focus:border-netflixRed">
+                            </div>
+
+                            <div class="space-y-1 md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-300 uppercase">Tóm Tắt Nội Dung (description)</label>
+                                <textarea id="newContentDesc" rows="2" placeholder="Mô tả cốt truyện ngắn gọn..." class="w-full bg-adminDark border border-adminBorder rounded-lg p-2.5 text-xs md:text-sm text-white focus:outline-none focus:border-netflixRed"></textarea>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-300 uppercase">Năm Phát Hành (release_year) *</label>
+                                <input id="newContentYear" type="number" min="1900" max="2030" value="2025" required class="w-full bg-adminDark border border-adminBorder rounded-lg p-2.5 text-xs md:text-sm text-white focus:outline-none focus:border-netflixRed">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-300 uppercase">Phân Loại Độ Tuổi (rating_age) *</label>
+                                <select id="newContentRating" class="w-full bg-adminDark border border-adminBorder rounded-lg p-2.5 text-xs md:text-sm text-white focus:outline-none focus:border-netflixRed">
+                                    <option value="G">G - Mọi lứa tuổi (General Audiences)</option>
+                                    <option value="PG">PG - Có phụ huynh hướng dẫn</option>
+                                    <option value="PG-13" selected>PG-13 - Cảnh báo dưới 13 tuổi</option>
+                                    <option value="R">R - Giới hạn dưới 17 tuổi (Trigger BR-09)</option>
+                                    <option value="NC-17">NC-17 - Hoàn toàn không dành cho trẻ em</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-300 uppercase">Loại Hình Nội Dung (content_type) *</label>
+                                <select id="newContentType" onchange="toggleContentFormFields()" class="w-full bg-adminDark border border-adminBorder rounded-lg p-2.5 text-xs md:text-sm text-white focus:outline-none focus:border-netflixRed font-bold text-yellow-400">
+                                    <option value="MOVIE">Phim Điện Ảnh (MOVIE)</option>
+                                    <option value="TV_SERIES">Phim Bộ Truyền Hình (TV_SERIES)</option>
+                                </select>
+                            </div>
+
+                            <!-- Movie Specific Field -->
+                            <div id="movieFields" class="space-y-1">
+                                <label class="block text-xs font-bold text-gray-300 uppercase">Thời Lượng (Phút - duration_minutes) *</label>
+                                <input id="newContentDuration" type="number" min="1" value="120" class="w-full bg-adminDark border border-adminBorder rounded-lg p-2.5 text-xs md:text-sm text-white focus:outline-none focus:border-netflixRed">
+                            </div>
+
+                            <!-- TV Series Specific Field -->
+                            <div id="seriesFields" class="hidden space-y-1">
+                                <label class="block text-xs font-bold text-gray-300 uppercase">Số Mùa Phát Sóng Ban Đầu (total_seasons) *</label>
+                                <input id="newContentSeasons" type="number" min="1" value="1" class="w-full bg-adminDark border border-adminBorder rounded-lg p-2.5 text-xs md:text-sm text-white focus:outline-none focus:border-netflixRed">
+                            </div>
+                        </div>
+
+                        <!-- Genre Checkboxes -->
+                        <div class="space-y-1.5 pt-2 border-t border-adminBorder">
+                            <label class="block text-xs font-bold text-gray-300 uppercase">Chọn Các Thể Loại (content_genre) *</label>
+                            <div id="adminGenreCheckboxes" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs max-h-28 overflow-y-auto p-2 bg-adminDark rounded border border-adminBorder">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Language Selection -->
+                        <div class="space-y-1 pt-2 border-t border-adminBorder">
+                            <label class="block text-xs font-bold text-gray-300 uppercase">Ngôn Ngữ Sản Xuất Gốc (language_code) *</label>
+                            <select id="newContentLang" class="w-full bg-adminDark border border-adminBorder rounded-lg p-2 text-xs text-white focus:outline-none focus:border-netflixRed">
+                                <option value="vi">Tiếng Việt (vi)</option>
+                                <option value="en">English (en)</option>
+                                <option value="ja">Japanese (ja)</option>
+                                <option value="ko">Korean (ko)</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-3 flex justify-end">
+                            <button type="submit" id="btnSubmitNewContent" class="bg-netflixRed hover:bg-red-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs md:text-sm transition flex items-center space-x-2 shadow-lg">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Ghi Tác Phẩm Vào CSDL</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- COL 3: THÊM SEASON / EPISODE & THỂ LOẠI / NGÔN NGỮ (COMPACT CARDS) -->
+                <div class="space-y-6">
+
+                    <!-- Form Thêm Mùa & Tập Phim -->
+                    <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-4 shadow-xl">
+                        <div class="border-b border-adminBorder pb-2.5 flex items-center justify-between">
+                            <h3 class="font-bold text-white text-xs md:text-sm flex items-center space-x-2">
+                                <i class="fa-solid fa-tv text-purple-400"></i>
+                                <span>2. Thêm Mùa (SEASON) & Tập (EPISODE)</span>
+                            </h3>
+                        </div>
+
+                        <!-- Add Season -->
+                        <form id="newSeasonForm" onsubmit="handleCreateSeason(event)" class="space-y-2 bg-adminDark/50 p-3 rounded-lg border border-adminBorder">
+                            <div class="text-[11px] font-bold text-purple-300 uppercase">Thêm Mùa Cho Series:</div>
+                            <select id="seasonSeriesSelect" required class="w-full bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white focus:outline-none focus:border-purple-400">
+                                <option value="">Chọn Series truyền hình...</option>
+                            </select>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input id="newSeasonNumber" type="number" min="1" value="2" placeholder="Số mùa" required class="bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white">
+                                <input id="newSeasonName" type="text" placeholder="Tên mùa (Mùa 2)" class="bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white">
+                            </div>
+                            <input id="newSeasonDate" type="date" class="w-full bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white">
+                            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-1.5 px-3 rounded text-xs transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Lưu Mùa Phim (POST /api/admin/seasons)</span>
+                            </button>
+                        </form>
+
+                        <!-- Add Episode -->
+                        <form id="newEpisodeForm" onsubmit="handleCreateEpisode(event)" class="space-y-2 bg-adminDark/50 p-3 rounded-lg border border-adminBorder">
+                            <div class="text-[11px] font-bold text-blue-300 uppercase">Thêm Tập Phim Vào Mùa:</div>
+                            <select id="episodeSeasonSelect" required class="w-full bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white focus:outline-none focus:border-blue-400">
+                                <option value="">Chọn Mùa phim cần thêm tập...</option>
+                            </select>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input id="newEpNumber" type="number" min="1" value="1" placeholder="Tập số" required class="bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white">
+                                <input id="newEpDuration" type="number" min="1" value="45" placeholder="Phút" class="bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white">
+                                <input id="newEpTitle" type="text" placeholder="Tên tập" class="bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white">
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded text-xs transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Lưu Tập Phim (POST /api/admin/episodes)</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Form Thêm Thể loại & Ngôn ngữ -->
+                    <div class="bg-adminCard border border-adminBorder p-5 rounded-xl space-y-4 shadow-xl">
+                        <div class="border-b border-adminBorder pb-2.5">
+                            <h3 class="font-bold text-white text-xs md:text-sm flex items-center space-x-2">
+                                <i class="fa-solid fa-tags text-green-400"></i>
+                                <span>3. Thêm Thể Loại (FR-07) & Ngôn Ngữ (FR-06)</span>
+                            </h3>
+                        </div>
+
+                        <!-- Add Genre -->
+                        <form id="newGenreForm" onsubmit="handleCreateGenre(event)" class="flex gap-2">
+                            <input id="newGenreNameInput" type="text" required placeholder="Tên thể loại mới (vd: Anime, Cyberpunk)" class="flex-1 bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white focus:outline-none focus:border-green-400">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-1.5 rounded text-xs transition">
+                                <i class="fa-solid fa-plus"></i> Thêm Genre
+                            </button>
+                        </form>
+
+                        <!-- Add Language -->
+                        <form id="newLanguageForm" onsubmit="handleCreateLanguage(event)" class="space-y-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input id="newLangCodeInput" type="text" maxlength="5" required placeholder="Mã (vd: fr, de)" class="bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white focus:outline-none focus:border-green-400">
+                                <input id="newLangNameInput" type="text" required placeholder="Tên (vd: French, German)" class="bg-adminDark border border-adminBorder rounded p-1.5 text-xs text-white focus:outline-none focus:border-green-400">
+                            </div>
+                            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-1.5 px-3 rounded text-xs transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Thêm Ngôn Ngữ (POST /api/admin/languages)</span>
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- BOTTOM: DANH SÁCH NỘI DUNG HIỆN CÓ KÈM NÚT XÓA (ON DELETE CASCADE) -->
+            <div class="bg-adminCard border border-adminBorder rounded-xl overflow-hidden shadow-xl space-y-3 p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-adminBorder pb-3">
+                    <div>
+                        <h3 class="font-bold text-sm text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-trash-can text-red-500"></i>
+                            <span>4. Danh Sách Tác Phẩm & Kiểm Định Xóa Lan Truyền (ON DELETE CASCADE)</span>
+                        </h3>
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            Khi xóa một bản ghi trong bảng cha <code>content</code>, MySQL sẽ tự động xóa sạch các bản ghi liên quan trong <code>movie / tv_series</code> &rarr; <code>season</code> &rarr; <code>tv_episode</code>, <code>content_genre</code>, <code>watchlist</code> và <code>watch_history</code>.
+                        </p>
+                    </div>
+                    <button onclick="loadAdminContentCatalog()" class="self-start sm:self-auto bg-adminDark hover:bg-gray-800 border border-adminBorder text-gray-300 text-xs px-3 py-1.5 rounded transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-rotate text-yellow-400"></i>
+                        <span>Làm mới danh sách</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto max-h-[420px]">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-adminDark text-gray-400 uppercase text-[11px] font-bold border-b border-adminBorder sticky top-0">
+                            <tr>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">Tựa Đề</th>
+                                <th class="p-3">Loại Hình</th>
+                                <th class="p-3">Năm</th>
+                                <th class="p-3">Độ Tuổi</th>
+                                <th class="p-3">Ngôn Ngữ</th>
+                                <th class="p-3 text-right">Thao Tác Xóa CASCADE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminContentTableBody" class="divide-y divide-adminBorder">
+                            <tr><td colspan="7" class="p-6 text-center text-gray-400">Đang tải danh sách tác phẩm từ CSDL...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: KIỂM THỬ TRIGGERS (BR-01 & BR-09) -->
+        <!-- ========================================== -->
+        <section id="tabContentTriggers" class="tab-panel hidden space-y-6">
+            <div id="tab-triggers"></div>
+            <div>
+                <h2 class="text-xl md:text-2xl font-black text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-shield-virus text-yellow-400"></i>
+                    <span>Bàn Kiểm Thử Trực Tiếp MySQL Triggers (Live Integrity Bench)</span>
+                </h2>
+                <p class="text-xs md:text-sm text-gray-400 mt-1">
+                    Mô phỏng hành vi của người dùng hoặc ứng dụng client vi phạm các ràng buộc toàn vẹn doanh nghiệp (Business Rules). 
+                    Hệ thống sẽ hiển thị chính xác tín hiệu lỗi <code class="text-yellow-400 font-mono">SIGNAL SQLSTATE '45000' (Errno 1644)</code> do MySQL trả về.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Test Trigger BR-01 -->
+                <div class="bg-adminCard border border-adminBorder p-6 rounded-xl space-y-4 shadow-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-yellow-500/10 text-yellow-500 flex items-center justify-center font-bold text-lg border border-yellow-500/30">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">Trigger BR-01: Giới hạn số lượng Profile</h3>
+                            <p class="text-[11px] text-gray-400 font-mono">trg_check_profile_limit_before_insert</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-300 space-y-2 bg-adminDark p-3 rounded-lg border border-adminBorder leading-relaxed">
+                        <p><strong>Nghiệp vụ (FR-02):</strong> Gói cước Basic chỉ cho phép tối đa 1 Profile. Standard tối đa 3 Profiles, Premium tối đa 5 Profiles.</p>
+                        <p><strong>Hành động kiểm thử:</strong> Gửi yêu cầu thêm profile thứ 2 vào tài khoản An Nguyễn (Account ID 1 - Gói Basic đã có sẵn 1 profile).</p>
+                    </div>
+                    <button onclick="testTriggerBR01()" class="w-full bg-red-600/80 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs md:text-sm transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Thử Kích Hoạt Lỗi BR-01 (Add Extra Profile)</span>
+                    </button>
+                    <!-- Result Box -->
+                    <div id="triggerResultBR01" class="hidden p-3 rounded-lg text-xs font-mono border"></div>
+                </div>
+
+                <!-- Test Trigger BR-09 -->
+                <div class="bg-adminCard border border-adminBorder p-6 rounded-xl space-y-4 shadow-xl">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center font-bold text-lg border border-red-500/30">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm md:text-base">Trigger BR-09: Chặn Trẻ Em xem phim R</h3>
+                            <p class="text-[11px] text-gray-400 font-mono">trg_check_kids_rating_before_watch</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-300 space-y-2 bg-adminDark p-3 rounded-lg border border-adminBorder leading-relaxed">
+                        <p><strong>Nghiệp vụ (BR-09):</strong> Hồ sơ trẻ em (is_kids = TRUE) tuyệt đối bị cấm xem và lưu lịch sử các phim nhãn <strong>R</strong> hoặc <strong>NC-17</strong>.</p>
+                        <p><strong>Hành động kiểm thử:</strong> Gửi bản ghi lịch sử xem phim gắn nhãn R bằng Hồ sơ Trẻ em (Profile ID 3: 'Bé Bi', is_kids = 1).</p>
+                    </div>
+                    <button onclick="testTriggerBR09()" class="w-full bg-red-600/80 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs md:text-sm transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Thử Kích Hoạt Lỗi BR-09 (Watch R Content with Kids)</span>
+                    </button>
+                    <!-- Result Box -->
+                    <div id="triggerResultBR09" class="hidden p-3 rounded-lg text-xs font-mono border"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Global Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-adminCard text-white px-5 py-3 rounded-xl shadow-2xl border border-gray-700 flex items-center space-x-3 text-xs md:text-sm">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-green-500 text-base"></i>
+        <span id="toastMsg">Thông báo</span>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 5. JAVASCRIPT LOGIC (ADMIN APPLICATION CONSOLE) -->
+    <!-- ===================================================================== -->
+    <script>
+        const adminState = {
+            currentUser: null,
+            genres: [],
+            languages: [],
+            revenueData: [],
+            queriesCatalog: [],
+            allUsers: [],
+            catalog: [],
+            currentQueryResults: []
+        };
+
+        // ==========================================
+        // INITIALIZATION & AUTH VERIFICATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userStr = localStorage.getItem('mini_netflix_user');
+            if (!userStr) {
+                showAccessDenied();
+                return;
+            }
+            try {
+                const user = JSON.parse(userStr);
+                if (!user || (!user.is_admin && !user.email.toLowerCase().includes('admin'))) {
+                    showAccessDenied();
+                    return;
+                }
+                adminState.currentUser = user;
+                document.getElementById('adminEmailDisplay').textContent = user.email;
+            } catch (e) {
+                showAccessDenied();
+                return;
+            }
+
+            // Load initial metadata and default views
+            await loadInitialMetadata();
+            await loadRevenueView();
+            await loadPresetQueriesList();
+            updateQueryBuilderPreviewSql();
+        });
+
+        function showAccessDenied() {
+            document.getElementById('accessDeniedModal').classList.remove('hidden');
+        }
+
+        function handleAdminLogout() {
+            localStorage.removeItem('mini_netflix_user');
+            localStorage.removeItem('mini_netflix_profile');
+            window.location.href = '/';
+        }
+
+        // ==========================================
+        // TAB SWITCHING CONTROLLER
+        // ==========================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.admin-tab').forEach(el => {
+                el.classList.remove('active', 'bg-netflixRed', 'text-white');
+                el.classList.add('text-gray-400');
+            });
+
+            if (tabId === 'revenue') {
+                document.getElementById('tabContentRevenue').classList.remove('hidden');
+                document.getElementById('tabBtnRevenue').classList.add('active', 'bg-netflixRed', 'text-white');
+                document.getElementById('tabBtnRevenue').classList.remove('text-gray-400');
+                loadRevenueView();
+            } else if (tabId === 'queries') {
+                document.getElementById('tabContentQueries').classList.remove('hidden');
+                document.getElementById('tabBtnQueries').classList.add('active', 'bg-netflixRed', 'text-white');
+                document.getElementById('tabBtnQueries').classList.remove('text-gray-400');
+                if (adminState.queriesCatalog.length === 0) {
+                    loadPresetQueriesList();
+                }
+            } else if (tabId === 'users') {
+                document.getElementById('tabContentUsers').classList.remove('hidden');
+                document.getElementById('tabBtnUsers').classList.add('active', 'bg-netflixRed', 'text-white');
+                document.getElementById('tabBtnUsers').classList.remove('text-gray-400');
+                loadAdminUsersTable();
+            } else if (tabId === 'content') {
+                document.getElementById('tabContentContent').classList.remove('hidden');
+                document.getElementById('tabBtnContent').classList.add('active', 'bg-netflixRed', 'text-white');
+                document.getElementById('tabBtnContent').classList.remove('text-gray-400');
+                loadAdminContentCatalog();
+            } else if (tabId === 'triggers') {
+                document.getElementById('tabContentTriggers').classList.remove('hidden');
+                document.getElementById('tabBtnTriggers').classList.add('active', 'bg-netflixRed', 'text-white');
+                document.getElementById('tabBtnTriggers').classList.remove('text-gray-400');
+            }
+        }
+
+        // ==========================================
+        // METADATA LOADER (GENRES & LANGUAGES)
+        // ==========================================
+        async function loadInitialMetadata() {
+            try {
+                const [gRes, lRes] = await Promise.all([
+                    fetch('/api/genres'),
+                    fetch('/api/languages')
+                ]);
+                adminState.genres = await gRes.json();
+                adminState.languages = await lRes.json();
+
+                // 1. Populate Checkboxes in Content Form
+                const container = document.getElementById('adminGenreCheckboxes');
+                if (container) {
+                    container.innerHTML = '';
+                    adminState.genres.forEach(g => {
+                        container.innerHTML += `
+                            <label class="flex items-center space-x-1.5 text-gray-300 hover:text-white cursor-pointer truncate">
+                                <input type="checkbox" name="genre_cb" value="${g.genre_id}" class="accent-netflixRed rounded">
+                                <span class="truncate">${g.genre_name}</span>
+                            </label>
+                        `;
+                    });
+                }
+
+                // 2. Populate Dropdowns in Query Builder
+                const qbGenreSel = document.getElementById('qbGenreId');
+                if (qbGenreSel) {
+                    qbGenreSel.innerHTML = '<option value="">Tất cả thể loại</option>';
+                    adminState.genres.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g.genre_id;
+                        opt.textContent = g.genre_name;
+                        qbGenreSel.appendChild(opt);
+                    });
+                }
+
+                const qbLangSel = document.getElementById('qbLanguageId');
+                if (qbLangSel) {
+                    qbLangSel.innerHTML = '<option value="">Tất cả ngôn ngữ</option>';
+                    adminState.languages.forEach(l => {
+                        const opt = document.createElement('option');
+                        opt.value = l.language_code;
+                        opt.textContent = `${l.language_name} (${l.language_code})`;
+                        qbLangSel.appendChild(opt);
+                    });
+                }
+
+                // 3. Populate Content Form Languages
+                const langSelect = document.getElementById('newContentLang');
+                if (langSelect) {
+                    langSelect.innerHTML = '';
+                    adminState.languages.forEach(l => {
+                        const opt = document.createElement('option');
+                        opt.value = l.language_code;
+                        opt.textContent = `${l.language_name} (${l.language_code})`;
+                        langSelect.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("Lỗi nạp metadata:", err);
+            }
+        }
+
+        // ==========================================
+        // 1. DOANH THU & THUÊ BAO VIEW
+        // ==========================================
+        async function loadRevenueView() {
+            try {
+                const res = await fetch('/api/admin/revenue');
+                const data = await res.json();
+                adminState.revenueData = data;
+
+                const tbody = document.getElementById('revenueTableBody');
+                tbody.innerHTML = '';
+
+                let totalRev = 0;
+                let totalSubs = 0;
+                let topTier = null;
+
+                data.forEach(row => {
+                    const rev = parseFloat(row.estimated_monthly_revenue || 0);
+                    const subs = parseInt(row.active_subscribers_count || 0);
+                    totalRev += rev;
+                    totalSubs += subs;
+
+                    if (!topTier || rev > topTier.rev) {
+                        topTier = { name: row.tier_name, rev: rev };
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-adminHover/50 transition">
+                            <td class="p-3.5 font-mono text-gray-400">#${row.tier_id}</td>
+                            <td class="p-3.5 font-bold text-white flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full ${row.tier_name === 'Premium' ? 'bg-purple-500' : row.tier_name === 'Standard' ? 'bg-blue-500' : 'bg-green-500'}"></span>
+                                <span>${row.tier_name}</span>
+                            </td>
+                            <td class="p-3.5 text-gray-300">${Number(row.monthly_price).toLocaleString('vi-VN')} đ</td>
+                            <td class="p-3.5"><span class="bg-black/60 px-2 py-0.5 rounded text-xs text-yellow-400 font-mono">${row.resolution || 'HD'}</span></td>
+                            <td class="p-3.5 text-center font-bold text-blue-400">${subs.toLocaleString()}</td>
+                            <td class="p-3.5 text-right font-black text-green-400 text-sm">${rev.toLocaleString('vi-VN')} đ</td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('kpiTotalRevenue').textContent = `${totalRev.toLocaleString('vi-VN')} đ`;
+                document.getElementById('kpiActiveUsers').textContent = totalSubs.toLocaleString();
+                if (topTier && totalRev > 0) {
+                    document.getElementById('kpiTopTier').textContent = topTier.name;
+                    document.getElementById('kpiTopTierRevenue').textContent = `${topTier.rev.toLocaleString('vi-VN')} đ (${Math.round((topTier.rev / totalRev) * 100)}% tổng DT)`;
+                }
+            } catch (err) {
+                console.error("Lỗi nạp doanh thu:", err);
+                showToast("Lỗi khi tải dữ liệu View doanh thu", "error");
+            }
+        }
+
+        // ==========================================
+        // 2. BỘ LỌC PHÂN TÍCH ĐA CHIỀU & TRUY VẤN ĐỘNG
+        // ==========================================
+
+        function handleDomainChange() {
+            const domain = document.getElementById('qbDomain').value;
+            const rawWrapper = document.getElementById('qbRawTableWrapper');
+            if (domain === 'raw_table') {
+                rawWrapper.classList.remove('hidden');
+            } else {
+                rawWrapper.classList.add('hidden');
+            }
+            updateQueryBuilderPreviewSql();
+        }
+
+        function handleQbLimitInput(isChange = false) {
+            const input = document.getElementById('qbLimit');
+            if (!input) return;
+            let raw = input.value.trim();
+            if (raw === "") {
+                if (isChange) {
+                    input.value = "50";
+                }
+                updateQueryBuilderPreviewSql();
+                return;
+            }
+            let val = parseInt(raw, 10);
+            if (isNaN(val)) {
+                if (isChange) input.value = "50";
+                updateQueryBuilderPreviewSql();
+                return;
+            }
+            if (val > 300) {
+                input.value = "300";
+                showToast("Giới hạn tối đa (LIMIT) được phép là 300 bản ghi!", "warning");
+            } else if (isChange && val < 1) {
+                input.value = "1";
+            }
+            updateQueryBuilderPreviewSql();
+        }
+
+        function setQbLimit(val) {
+            const input = document.getElementById('qbLimit');
+            if (!input) return;
+            const parsed = parseInt(val, 10) || 50;
+            const clamped = Math.min(Math.max(parsed, 1), 300);
+            input.value = clamped;
+            if (parsed > 300) {
+                showToast("Giới hạn tối đa (LIMIT) được phép là 300 bản ghi!", "warning");
+            }
+            updateQueryBuilderPreviewSql();
+        }
+
+        function getQueryBuilderPayload() {
+            return {
+                domain: document.getElementById('qbDomain').value,
+                raw_table: document.getElementById('qbRawTable').value,
+                content_type: document.getElementById('qbContentType').value,
+                genre_id: document.getElementById('qbGenreId').value,
+                language_code: document.getElementById('qbLanguageId').value,
+                rating_age: document.getElementById('qbRatingAge').value,
+                resolution: document.getElementById('qbResolution').value,
+                tier_id: document.getElementById('qbTierId').value,
+                account_status: document.getElementById('qbAccountStatus').value,
+                is_kids: document.getElementById('qbIsKids').value,
+                is_completed: document.getElementById('qbIsCompleted').value,
+                country_code: document.getElementById('qbCountry').value,
+                group_by: document.getElementById('qbGroupBy').value,
+                sort_dir: document.getElementById('qbSortDir').value,
+                limit: Math.min(Math.max(parseInt(document.getElementById('qbLimit').value) || 50, 1), 300)
+            };
+        }
+
+        function buildSqlFromPayload(p) {
+            const domain = p.domain || 'content';
+            const limit = Math.min(Math.max(parseInt(p.limit) || 50, 1), 300);
+            const sortDir = p.sort_dir === 'ASC' ? 'ASC' : 'DESC';
+            const whereClauses = [];
+
+            // Common WHERE filters
+            if (p.content_type) {
+                whereClauses.push(`c.content_type = '${p.content_type.replace(/'/g, "''")}'`);
+            }
+            if (p.genre_id) {
+                whereClauses.push(`cg.genre_id = ${parseInt(p.genre_id)}`);
+            }
+            if (p.language_code) {
+                whereClauses.push(`c.language_code = '${p.language_code.replace(/'/g, "''")}'`);
+            }
+            if (p.rating_age) {
+                whereClauses.push(`c.rating_age = '${p.rating_age.replace(/'/g, "''")}'`);
+            }
+
+            if (domain === 'raw_table') {
+                const tbl = p.raw_table || 'content';
+                return `SELECT * FROM \`${tbl}\` LIMIT ${limit};`;
+            }
+
+            if (domain === 'content') {
+                if (p.resolution) {
+                    whereClauses.push(`m.video_resolution = '${p.resolution.replace(/'/g, "''")}'`);
+                }
+                const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+                if (p.group_by === 'genre') {
+                    return `SELECT 
+    g.genre_name,
+    COUNT(DISTINCT c.content_id) AS total_titles_count,
+    ROUND(AVG(c.release_year), 0) AS avg_release_year
+FROM content c
+INNER JOIN content_genre cg ON c.content_id = cg.content_id
+INNER JOIN genre g ON cg.genre_id = g.genre_id
+LEFT JOIN movie m ON c.content_id = m.content_id
+${whereStr}
+GROUP BY g.genre_name
+ORDER BY total_titles_count ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                if (p.group_by === 'language') {
+                    return `SELECT 
+    l.language_name,
+    c.language_code,
+    COUNT(DISTINCT c.content_id) AS total_titles_count
+FROM content c
+LEFT JOIN language l ON c.language_code = l.language_code
+LEFT JOIN content_genre cg ON c.content_id = cg.content_id
+LEFT JOIN movie m ON c.content_id = m.content_id
+${whereStr}
+GROUP BY l.language_name, c.language_code
+ORDER BY total_titles_count ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                if (p.group_by === 'content_type') {
+                    return `SELECT 
+    c.content_type,
+    COUNT(DISTINCT c.content_id) AS total_titles_count,
+    COUNT(DISTINCT cg.genre_id) AS total_distinct_genres
+FROM content c
+LEFT JOIN content_genre cg ON c.content_id = cg.content_id
+LEFT JOIN movie m ON c.content_id = m.content_id
+${whereStr}
+GROUP BY c.content_type
+ORDER BY total_titles_count ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                if (p.group_by === 'rating_age') {
+                    return `SELECT 
+    c.rating_age,
+    COUNT(DISTINCT c.content_id) AS total_titles_count,
+    ROUND((COUNT(DISTINCT c.content_id) * 100.0) / (SELECT COUNT(*) FROM content), 1) AS percentage_share
+FROM content c
+LEFT JOIN content_genre cg ON c.content_id = cg.content_id
+LEFT JOIN movie m ON c.content_id = m.content_id
+${whereStr}
+GROUP BY c.rating_age
+ORDER BY total_titles_count ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                // Default Detail Rows for content
+                return `SELECT 
+    c.content_id,
+    c.title,
+    c.content_type,
+    c.release_year,
+    c.rating_age,
+    l.language_name,
+    COALESCE(m.video_resolution, 'Full HD (1080p)') AS video_resolution,
+    COALESCE(m.duration_minutes, 0) AS duration_minutes,
+    COALESCE(ts.total_seasons, 0) AS total_seasons,
+    GROUP_CONCAT(DISTINCT g.genre_name SEPARATOR ', ') AS genres
+FROM content c
+LEFT JOIN movie m ON c.content_id = m.content_id
+LEFT JOIN tv_series ts ON c.content_id = ts.content_id
+LEFT JOIN language l ON c.language_code = l.language_code
+LEFT JOIN content_genre cg ON c.content_id = cg.content_id
+LEFT JOIN genre g ON cg.genre_id = g.genre_id
+${whereStr}
+GROUP BY c.content_id, c.title, c.content_type, c.release_year, c.rating_age, l.language_name, m.video_resolution, m.duration_minutes, ts.total_seasons
+ORDER BY c.release_year ${sortDir}, c.content_id DESC
+LIMIT ${limit};`;
+            }
+
+            if (domain === 'watch_behavior') {
+                if (p.is_kids !== '') {
+                    whereClauses.push(`p.is_kids = ${p.is_kids === '1' ? 'TRUE' : 'FALSE'}`);
+                }
+                if (p.is_completed !== '') {
+                    whereClauses.push(`wh.is_completed = ${p.is_completed === '1' ? 'TRUE' : 'FALSE'}`);
+                }
+                if (p.tier_id) {
+                    whereClauses.push(`ua.tier_id = ${parseInt(p.tier_id)}`);
+                }
+                if (p.country_code) {
+                    whereClauses.push(`ua.country_code = '${p.country_code.replace(/'/g, "''")}'`);
+                }
+                const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+                if (p.group_by === 'content') {
+                    return `SELECT 
+    c.content_id,
+    c.title,
+    c.content_type,
+    c.rating_age,
+    COUNT(wh.history_id) AS total_views,
+    SUM(CASE WHEN wh.is_completed = TRUE THEN 1 ELSE 0 END) AS completed_views,
+    ROUND((SUM(CASE WHEN wh.is_completed = TRUE THEN 1 ELSE 0 END) * 100.0) / COUNT(wh.history_id), 1) AS completion_rate_pct,
+    ROUND(SUM(wh.stopped_position_seconds) / 60.0, 1) AS total_minutes_watched
+FROM watch_history wh
+INNER JOIN content c ON wh.content_id = c.content_id
+INNER JOIN profile p ON wh.profile_id = p.profile_id
+INNER JOIN user_account ua ON p.account_id = ua.account_id
+LEFT JOIN content_genre cg ON c.content_id = cg.content_id
+${whereStr}
+GROUP BY c.content_id, c.title, c.content_type, c.rating_age
+ORDER BY total_views ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                if (p.group_by === 'profile') {
+                    return `SELECT 
+    p.profile_id,
+    p.profile_name,
+    IF(p.is_kids = TRUE, 'Trẻ em (Kids)', 'Người lớn') AS profile_type,
+    ua.email AS account_email,
+    COUNT(wh.history_id) AS total_watched_titles,
+    SUM(CASE WHEN wh.is_completed = TRUE THEN 1 ELSE 0 END) AS completed_titles,
+    ROUND(SUM(wh.stopped_position_seconds) / 60.0, 1) AS total_watch_minutes
+FROM watch_history wh
+INNER JOIN profile p ON wh.profile_id = p.profile_id
+INNER JOIN user_account ua ON p.account_id = ua.account_id
+INNER JOIN content c ON wh.content_id = c.content_id
+LEFT JOIN content_genre cg ON c.content_id = cg.content_id
+${whereStr}
+GROUP BY p.profile_id, p.profile_name, p.is_kids, ua.email
+ORDER BY total_watch_minutes ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                if (p.group_by === 'genre') {
+                    return `SELECT 
+    g.genre_name,
+    COUNT(wh.history_id) AS total_views_count,
+    COUNT(DISTINCT p.profile_id) AS distinct_profiles_count,
+    ROUND(SUM(wh.stopped_position_seconds) / 60.0, 1) AS total_minutes_watched
+FROM watch_history wh
+INNER JOIN content c ON wh.content_id = c.content_id
+INNER JOIN content_genre cg ON c.content_id = cg.content_id
+INNER JOIN genre g ON cg.genre_id = g.genre_id
+INNER JOIN profile p ON wh.profile_id = p.profile_id
+INNER JOIN user_account ua ON p.account_id = ua.account_id
+${whereStr}
+GROUP BY g.genre_name
+ORDER BY total_views_count ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                // Default Detail Rows for watch_behavior
+                return `SELECT 
+    wh.history_id,
+    p.profile_name,
+    IF(p.is_kids = TRUE, 'Kids', 'Adult') AS profile_type,
+    ua.email AS user_email,
+    c.title AS content_title,
+    c.content_type,
+    c.rating_age,
+    ROUND(wh.stopped_position_seconds / 60.0, 1) AS stopped_minute,
+    IF(wh.is_completed = TRUE, 'Đã hoàn thành', 'Đang xem dở') AS completion_status,
+    wh.last_watched_timestamp
+FROM watch_history wh
+INNER JOIN profile p ON wh.profile_id = p.profile_id
+INNER JOIN user_account ua ON p.account_id = ua.account_id
+INNER JOIN content c ON wh.content_id = c.content_id
+LEFT JOIN content_genre cg ON c.content_id = cg.content_id
+${whereStr}
+ORDER BY wh.last_watched_timestamp ${sortDir}
+LIMIT ${limit};`;
+            }
+
+            if (domain === 'subscription') {
+                const subWhere = [];
+                if (p.tier_id) {
+                    subWhere.push(`ua.tier_id = ${parseInt(p.tier_id)}`);
+                }
+                if (p.account_status) {
+                    subWhere.push(`ua.account_status = '${p.account_status.replace(/'/g, "''")}'`);
+                }
+                if (p.country_code) {
+                    subWhere.push(`ua.country_code = '${p.country_code.replace(/'/g, "''")}'`);
+                }
+                const whereStr = subWhere.length > 0 ? `WHERE ${subWhere.join(' AND ')}` : '';
+
+                if (p.group_by === 'tier') {
+                    return `SELECT 
+    st.tier_id,
+    st.tier_name,
+    st.monthly_price,
+    st.resolution,
+    st.max_profiles_allowed,
+    COUNT(DISTINCT ua.account_id) AS total_subscribers,
+    SUM(CASE WHEN ua.account_status = 'ACTIVE' THEN 1 ELSE 0 END) AS active_subscribers,
+    SUM(CASE WHEN ua.account_status = 'ACTIVE' THEN st.monthly_price ELSE 0 END) AS estimated_active_revenue_vnd,
+    COUNT(p.profile_id) AS total_profiles_created
+FROM subscription_tier st
+LEFT JOIN user_account ua ON st.tier_id = ua.tier_id
+LEFT JOIN profile p ON ua.account_id = p.account_id
+${whereStr}
+GROUP BY st.tier_id, st.tier_name, st.monthly_price, st.resolution, st.max_profiles_allowed
+ORDER BY estimated_active_revenue_vnd ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                if (p.group_by === 'country') {
+                    return `SELECT 
+    COALESCE(ua.country_code, 'VN') AS country_code,
+    COUNT(DISTINCT ua.account_id) AS total_users_count,
+    SUM(CASE WHEN ua.account_status = 'ACTIVE' THEN st.monthly_price ELSE 0 END) AS total_revenue_vnd
+FROM user_account ua
+INNER JOIN subscription_tier st ON ua.tier_id = st.tier_id
+${whereStr}
+GROUP BY country_code
+ORDER BY total_users_count ${sortDir}
+LIMIT ${limit};`;
+                }
+
+                // Default Detail Rows for subscription
+                return `SELECT 
+    ua.account_id,
+    ua.email,
+    ua.account_status,
+    COALESCE(ua.country_code, 'VN') AS country_code,
+    ua.registration_date,
+    st.tier_name,
+    st.monthly_price,
+    st.resolution,
+    st.max_profiles_allowed,
+    COUNT(p.profile_id) AS profile_count
+FROM user_account ua
+INNER JOIN subscription_tier st ON ua.tier_id = st.tier_id
+LEFT JOIN profile p ON ua.account_id = p.account_id
+${whereStr}
+GROUP BY ua.account_id, ua.email, ua.account_status, ua.country_code, ua.registration_date, st.tier_name, st.monthly_price, st.resolution, st.max_profiles_allowed
+ORDER BY ua.account_id ${sortDir}
+LIMIT ${limit};`;
+            }
+
+            return `SELECT * FROM content LIMIT ${limit};`;
+        }
+
+        function updateQueryBuilderPreviewSql() {
+            const payload = getQueryBuilderPayload();
+            const sql = buildSqlFromPayload(payload);
+            document.getElementById('customSqlEditor').value = sql;
+        }
+
+        async function executeDynamicQueryBuilder() {
+            const payload = getQueryBuilderPayload();
+            const generatedSql = buildSqlFromPayload(payload);
+            document.getElementById('customSqlEditor').value = generatedSql;
+
+            const btn = document.getElementById('runQueryBuilderBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Đang phân tích...</span>`;
+            const startTime = performance.now();
+
+            try {
+                let rows = null;
+                // Attempt 1: Call POST /api/admin/query-builder
+                const res = await fetch('/api/admin/query-builder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    const result = await res.json();
+                    if (result.generated_sql) {
+                        document.getElementById('customSqlEditor').value = result.generated_sql;
+                    }
+                    rows = result.rows || result.data || [];
+                } else {
+                    // Fallback: If query-builder API is not ready, fallback to sql-runner with generatedSql or tables API
+                    if (payload.domain === 'raw_table' && payload.raw_table) {
+                        const tableRes = await fetch(`/api/admin/tables/${payload.raw_table}?limit=${payload.limit || 50}`);
+                        if (tableRes.ok) {
+                            rows = await tableRes.json();
+                        }
+                    }
+                    if (!rows) {
+                        const runnerRes = await fetch('/api/admin/sql-runner', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sql: generatedSql })
+                        });
+                        if (runnerRes.ok) {
+                            const runnerData = await runnerRes.json();
+                            rows = runnerData.rows || runnerData.data || [];
+                        } else {
+                            const errData = await res.json().catch(() => ({ error: 'Lỗi thực thi truy vấn' }));
+                            throw new Error(errData.error || 'Lỗi từ máy chủ CSDL');
+                        }
+                    }
+                }
+
+                const duration = Math.round(performance.now() - startTime);
+                adminState.currentQueryResults = rows;
+                updateQueryBadges(duration, rows.length);
+                renderQueryResultTable(rows);
+                showToast(`Truy vấn hoàn tất: ${rows.length} bản ghi (${duration} ms)`, "success");
+            } catch (err) {
+                console.error("Lỗi Query Builder:", err);
+                showToast(err.message || "Lỗi khi chạy bộ lọc truy vấn", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i><span>Thực Thi Bộ Lọc (Pull Data)</span>`;
+            }
+        }
+
+        function resetQueryBuilderFilters() {
+            document.getElementById('qbDomain').value = 'content';
+            document.getElementById('qbRawTableWrapper').classList.add('hidden');
+            document.getElementById('qbRawTable').value = 'content';
+            document.getElementById('qbContentType').value = '';
+            document.getElementById('qbGenreId').value = '';
+            document.getElementById('qbLanguageId').value = '';
+            document.getElementById('qbRatingAge').value = '';
+            document.getElementById('qbResolution').value = '';
+            document.getElementById('qbTierId').value = '';
+            document.getElementById('qbAccountStatus').value = '';
+            document.getElementById('qbIsKids').value = '';
+            document.getElementById('qbIsCompleted').value = '';
+            document.getElementById('qbCountry').value = '';
+            document.getElementById('qbGroupBy').value = '';
+            document.getElementById('qbSortDir').value = 'DESC';
+            document.getElementById('qbLimit').value = '50';
+            updateQueryBuilderPreviewSql();
+            showToast("Đã thiết lập lại toàn bộ bộ lọc!", "info");
+        }
+
+        // ==========================================
+        // 2B. 10 MẪU TRUY VẤN CHUẨN PHASE 3 (PRESETS)
+        // ==========================================
+        async function loadPresetQueriesList() {
+            try {
+                const res = await fetch('/api/admin/queries');
+                if (!res.ok) return;
+                const list = await res.json();
+                adminState.queriesCatalog = list;
+
+                const sel = document.getElementById('querySelect');
+                sel.innerHTML = '';
+                list.forEach(q => {
+                    const opt = document.createElement('option');
+                    opt.value = q.id;
+                    opt.textContent = `${q.title}`;
+                    sel.appendChild(opt);
+                });
+
+                if (list.length > 0) {
+                    handlePresetQueryChange();
+                }
+            } catch (e) {
+                console.error("Lỗi nạp danh sách 10 truy vấn Phase 3:", e);
+            }
+        }
+
+        async function handlePresetQueryChange() {
+            const qId = document.getElementById('querySelect').value;
+            if (!qId) return;
+
+            const preset = adminState.queriesCatalog.find(q => String(q.id) === String(qId));
+            if (preset) {
+                document.getElementById('queryTitleDisplay').textContent = preset.title;
+                document.getElementById('queryDescDisplay').textContent = preset.description || '';
+            }
+
+            try {
+                const res = await fetch(`/api/admin/queries/${qId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.sql) {
+                        document.getElementById('customSqlEditor').value = data.sql.trim();
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi lấy chi tiết câu truy vấn:", e);
+            }
+        }
+
+        async function executeSelectedQuery() {
+            const qId = document.getElementById('querySelect').value;
+            if (!qId) {
+                showToast("Vui lòng chọn mẫu truy vấn Phase 3", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btnExecuteQuery');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Đang thực thi...</span>`;
+
+            const startTime = performance.now();
+            try {
+                const res = await fetch(`/api/admin/queries/${qId}`);
+                const result = await res.json();
+                const duration = Math.round(performance.now() - startTime);
+
+                if (!res.ok) {
+                    throw new Error(result.error || "Lỗi thực thi truy vấn Phase 3");
+                }
+
+                if (result.sql) {
+                    document.getElementById('customSqlEditor').value = result.sql.trim();
+                }
+                if (result.title) {
+                    document.getElementById('queryTitleDisplay').textContent = result.title;
+                }
+                if (result.description) {
+                    document.getElementById('queryDescDisplay').textContent = result.description;
+                }
+
+                const rows = result.data || result.rows || [];
+                adminState.currentQueryResults = rows;
+                updateQueryBadges(duration, rows.length);
+                renderQueryResultTable(rows);
+                showToast(`Thực thi Truy vấn ${qId} thành công trong ${duration} ms!`, "success");
+            } catch (err) {
+                console.error("Lỗi thực thi query:", err);
+                showToast(err.message || "Lỗi khi chạy truy vấn SQL", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-play"></i><span>Chạy Mẫu Phase 3</span>`;
+            }
+        }
+
+        // ==========================================
+        // 2C. LIVE READ-ONLY SQL RUNNER & EXPORT CSV
+        // ==========================================
+        async function executeCustomSqlRunner() {
+            const sql = document.getElementById('customSqlEditor').value.trim();
+            if (!sql) {
+                showToast("Vui lòng nhập câu lệnh SQL SELECT", "error");
+                return;
+            }
+
+            const upper = sql.toUpperCase();
+            if (!upper.startsWith('SELECT') && !upper.startsWith('EXPLAIN') && !upper.startsWith('SHOW') && !upper.startsWith('DESC')) {
+                showToast("Sandbox an toàn: Chỉ cho phép chạy câu lệnh SELECT / EXPLAIN (Read-Only)!", "error");
+                return;
+            }
+
+            const btn = document.getElementById('runCustomSqlBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Đang chạy SQL...</span>`;
+            const startTime = performance.now();
+
+            try {
+                const res = await fetch('/api/admin/sql-runner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sql })
+                });
+                const result = await res.json();
+                const duration = Math.round(performance.now() - startTime);
+
+                if (!res.ok || result.success === false) {
+                    throw new Error(result.error || "Lỗi khi thực thi câu lệnh SQL");
+                }
+
+                const rows = result.rows || result.data || [];
+                adminState.currentQueryResults = rows;
+                updateQueryBadges(duration, rows.length);
+                renderQueryResultTable(rows);
+                showToast(`Thực thi SQL thành công: ${rows.length} dòng (${duration} ms)`, "success");
+            } catch (err) {
+                console.error("Lỗi custom SQL runner:", err);
+                showToast(err.message || "Lỗi khi chạy SQL tùy chỉnh", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-terminal"></i><span>Chạy Câu Lệnh SELECT Tùy Chỉnh</span>`;
+            }
+        }
+
+        function copyCustomSql() {
+            const sql = document.getElementById('customSqlEditor').value;
+            if (!sql) return;
+            navigator.clipboard.writeText(sql).then(() => {
+                showToast("Đã sao chép câu lệnh SQL vào Clipboard!", "success");
+            }).catch(() => {
+                showToast("Không thể sao chép tự động", "error");
+            });
+        }
+
+        function updateQueryBadges(durationMs, rowCount) {
+            const timeBadge = document.getElementById('queryExecutionTimeBadge');
+            if (timeBadge) {
+                timeBadge.textContent = `${durationMs} ms`;
+                timeBadge.classList.remove('hidden');
+            }
+            const rowBadge = document.getElementById('queryRowCountBadge');
+            if (rowBadge) {
+                rowBadge.textContent = `${rowCount} dòng`;
+                rowBadge.classList.remove('hidden');
+            }
+            const rowsBadge = document.getElementById('queryResultRowsBadge');
+            if (rowsBadge) {
+                rowsBadge.textContent = `${rowCount} bản ghi`;
+            }
+        }
+
+        function renderQueryResultTable(rows) {
+            const thead = document.getElementById('queryResultHead');
+            const tbody = document.getElementById('queryResultBody');
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            if (!rows || rows.length === 0) {
+                thead.innerHTML = `<tr><th class="p-3.5">Thông báo</th></tr>`;
+                tbody.innerHTML = `<tr><td class="p-8 text-center text-gray-400">Không tìm thấy bản ghi nào thỏa mãn điều kiện truy vấn.</td></tr>`;
+                return;
+            }
+
+            const cols = Object.keys(rows[0]);
+            let headerHtml = '<tr>';
+            cols.forEach(c => {
+                headerHtml += `<th class="p-3.5 font-bold tracking-wider">${c}</th>`;
+            });
+            headerHtml += '</tr>';
+            thead.innerHTML = headerHtml;
+
+            rows.forEach((r, idx) => {
+                let rowHtml = `<tr class="hover:bg-adminHover/50 transition ${idx % 2 === 0 ? 'bg-adminCard/40' : ''}">`;
+                cols.forEach(c => {
+                    const val = r[c] !== null && r[c] !== undefined ? r[c] : '<span class="text-gray-500 italic">NULL</span>';
+                    rowHtml += `<td class="p-3.5 font-mono text-xs text-gray-200">${val}</td>`;
+                });
+                rowHtml += '</tr>';
+                tbody.innerHTML += rowHtml;
+            });
+        }
+
+        function exportCurrentQueryResultsCSV() {
+            const rows = adminState.currentQueryResults;
+            if (!rows || rows.length === 0) {
+                showToast("Không có dữ liệu trong bảng để xuất CSV!", "error");
+                return;
+            }
+
+            const cols = Object.keys(rows[0]);
+            let csvContent = '\uFEFF'; // UTF-8 BOM để Excel hiển thị tiếng Việt chính xác
+            csvContent += cols.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',') + '\r\n';
+
+            rows.forEach(r => {
+                const rowStr = cols.map(c => {
+                    const val = r[c] !== null && r[c] !== undefined ? String(r[c]) : '';
+                    return `"${val.replace(/"/g, '""')}"`;
+                }).join(',');
+                csvContent += rowStr + '\r\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mini_netflix_analytics_export_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Đã tải xuống tệp CSV thành công!", "success");
+        }
+
+        // ==========================================
+        // 3. QUẢN TRỊ TÀI KHOẢN (USER ACCOUNTS)
+        // ==========================================
+        async function loadAdminUsersTable() {
+            try {
+                const res = await fetch('/api/admin/users');
+                adminState.allUsers = await res.json();
+                filterAdminUsers();
+            } catch (err) {
+                console.error("Lỗi tải người dùng:", err);
+                showToast("Lỗi tải danh sách người dùng", "error");
+            }
+        }
+
+        function filterAdminUsers() {
+            const search = document.getElementById('userSearchInput').value.toLowerCase().trim();
+            const status = document.getElementById('userStatusFilter').value;
+            const tbody = document.getElementById('adminUsersTableBody');
+            tbody.innerHTML = '';
+
+            const filtered = adminState.allUsers.filter(u => {
+                const matchSearch = (u.email && u.email.toLowerCase().includes(search)) || String(u.account_id).includes(search);
+                const matchStatus = status === 'ALL' || u.account_status === status;
+                return matchSearch && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400">Không tìm thấy tài khoản nào phù hợp.</td></tr>`;
+                return;
+            }
+
+            filtered.slice(0, 100).forEach(u => {
+                const isSuspended = u.account_status === 'SUSPENDED';
+                const profileCount = u.profile_count ?? u.current_profile_count ?? 0;
+                const resolutionStr = u.resolution || 'HD';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-adminHover/50 transition">
+                        <td class="p-3.5 font-mono text-gray-400">#${u.account_id}</td>
+                        <td class="p-3.5 font-semibold text-white">
+                            <div>${u.email}</div>
+                            ${u.profiles_str ? `<div class="text-[11px] text-gray-400 truncate max-w-xs mt-0.5"><i class="fa-solid fa-user-tag text-netflixRed mr-1"></i>${u.profiles_str}</div>` : ''}
+                        </td>
+                        <td class="p-3.5">
+                            <div class="space-y-1">
+                                <span class="bg-black/60 px-2 py-0.5 rounded text-xs text-yellow-400 font-bold">${u.tier_name} (${resolutionStr})</span>
+                                <select onchange="changeUserTier(${u.account_id}, this.value)" class="bg-adminDark border border-adminBorder text-white text-[11px] rounded px-2 py-0.5 block mt-1 focus:border-netflixRed">
+                                    <option value="1" ${u.tier_id === 1 ? 'selected' : ''}>1: Basic (1 Profile - HD)</option>
+                                    <option value="2" ${u.tier_id === 2 ? 'selected' : ''}>2: Standard (3 Profiles - Full HD)</option>
+                                    <option value="3" ${u.tier_id === 3 ? 'selected' : ''}>3: Premium (5 Profiles - 4K UHD)</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td class="p-3.5 text-gray-400 text-xs">${u.registration_date || 'N/A'}</td>
+                        <td class="p-3.5 text-center font-bold text-gray-300">
+                            <span class="${profileCount >= u.max_profiles_allowed ? 'text-red-400' : 'text-green-400'}">
+                                ${profileCount}
+                            </span>
+                            / ${u.max_profiles_allowed}
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${isSuspended ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-green-500/20 text-green-400 border border-green-500/40'}">
+                                ${u.account_status}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-right">
+                            ${isSuspended ? `
+                                <button onclick="toggleUserStatus(${u.account_id}, 'ACTIVE')" class="bg-green-600/80 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs transition">
+                                    <i class="fa-solid fa-lock-open mr-1"></i> Mở Khóa
+                                </button>
+                            ` : `
+                                <button onclick="toggleUserStatus(${u.account_id}, 'SUSPENDED')" class="bg-red-600/80 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs transition">
+                                    <i class="fa-solid fa-lock mr-1"></i> Khóa Nick
+                                </button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function changeUserTier(accountId, newTierId) {
+            try {
+                const res = await fetch(`/api/admin/users/${accountId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tier_id: parseInt(newTierId) })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Tài khoản #${accountId} đã đổi sang Gói cước mới thành công!`, "success");
+                    await loadAdminUsersTable();
+                    await loadRevenueView(); // Tự động làm mới View Doanh Thu!
+                } else {
+                    showToast(data.error || "Không thể cập nhật gói cước", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi đổi gói cước:", err);
+                showToast("Lỗi kết nối CSDL", "error");
+            }
+        }
+
+        async function toggleUserStatus(accountId, newStatus) {
+            try {
+                const res = await fetch(`/api/admin/users/${accountId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account_status: newStatus })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Tài khoản #${accountId} đã chuyển sang: ${newStatus}`, "success");
+                    await loadAdminUsersTable();
+                    await loadRevenueView();
+                } else {
+                    showToast(data.error || "Không thể cập nhật trạng thái", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi toggle status:", err);
+                showToast("Lỗi kết nối CSDL", "error");
+            }
+        }
+
+        // ==========================================
+        // 4. QUẢN TRỊ NỘI DUNG EER & DANH MỤC DML
+        // ==========================================
+        function toggleContentFormFields() {
+            const type = document.getElementById('newContentType').value;
+            if (type === 'MOVIE') {
+                document.getElementById('movieFields').classList.remove('hidden');
+                document.getElementById('seriesFields').classList.add('hidden');
+            } else {
+                document.getElementById('movieFields').classList.add('hidden');
+                document.getElementById('seriesFields').classList.remove('hidden');
+            }
+        }
+
+        async function handleCreateContent(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitNewContent');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Đang ghi vào CSDL...</span>`;
+
+            const selectedGenres = Array.from(document.querySelectorAll('input[name="genre_cb"]:checked')).map(cb => parseInt(cb.value));
+
+            const payload = {
+                title: document.getElementById('newContentTitle').value.trim(),
+                description: document.getElementById('newContentDesc').value.trim(),
+                release_year: parseInt(document.getElementById('newContentYear').value),
+                rating_age: document.getElementById('newContentRating').value,
+                content_type: document.getElementById('newContentType').value,
+                duration_minutes: parseInt(document.getElementById('newContentDuration').value) || 120,
+                total_seasons: parseInt(document.getElementById('newContentSeasons').value) || 1,
+                genre_ids: selectedGenres.length > 0 ? selectedGenres : [1],
+                language_code: document.getElementById('newContentLang').value
+            };
+
+            try {
+                const res = await fetch('/api/admin/content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Đã thêm thành công nội dung mới (ID: ${data.content_id})!`, "success");
+                    document.getElementById('newContentForm').reset();
+                    toggleContentFormFields();
+                    await loadAdminContentCatalog();
+                } else {
+                    showToast(data.error || "Lỗi khi thêm nội dung", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi tạo content:", err);
+                showToast("Lỗi kết nối máy chủ CSDL", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Ghi Tác Phẩm Vào CSDL</span>`;
+            }
+        }
+
+        async function loadAdminContentCatalog() {
+            try {
+                const res = await fetch('/api/catalog?limit=200');
+                if (!res.ok) return;
+                const catalog = await res.json();
+                adminState.catalog = catalog;
+
+                // Populate Content Table
+                const tbody = document.getElementById('adminContentTableBody');
+                tbody.innerHTML = '';
+
+                if (catalog.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400">Kho phim hiện tại chưa có dữ liệu.</td></tr>`;
+                    return;
+                }
+
+                catalog.forEach(item => {
+                    const isMovie = item.content_type === 'MOVIE';
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-adminHover/50 transition">
+                            <td class="p-3 font-mono text-gray-400">#${item.content_id}</td>
+                            <td class="p-3 font-bold text-white">${item.title}</td>
+                            <td class="p-3">
+                                <span class="px-2 py-0.5 rounded text-[11px] font-bold ${isMovie ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'bg-purple-500/20 text-purple-400 border border-purple-500/40'}">
+                                    ${item.content_type}
+                                </span>
+                            </td>
+                            <td class="p-3 text-gray-300">${item.release_year}</td>
+                            <td class="p-3">
+                                <span class="bg-black/60 px-1.5 py-0.5 rounded text-xs text-yellow-400 font-mono">${item.rating_age}</span>
+                            </td>
+                            <td class="p-3 text-gray-400 font-mono">${item.language_code || item.language_name || 'N/A'}</td>
+                            <td class="p-3 text-right">
+                                <button onclick="handleDeleteContent(${item.content_id}, '${item.title.replace(/'/g, "\\'")}')" class="bg-red-600/80 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs transition flex items-center space-x-1 ml-auto">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    <span>Xóa CASCADE</span>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                // Populate Series dropdown in Season & Episode form
+                populateSeriesDropdowns(catalog);
+            } catch (err) {
+                console.error("Lỗi nạp catalog:", err);
+            }
+        }
+
+        function populateSeriesDropdowns(catalog) {
+            const seriesList = catalog.filter(c => c.content_type === 'TV_SERIES');
+            const seasonSelect = document.getElementById('seasonSeriesSelect');
+            if (seasonSelect) {
+                seasonSelect.innerHTML = '<option value="">Chọn Series truyền hình...</option>';
+                seriesList.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.content_id;
+                    opt.textContent = `#${s.content_id} - ${s.title}`;
+                    seasonSelect.appendChild(opt);
+                });
+            }
+
+            // Episode Season Select: load seasons for first series or on change
+            loadAvailableSeasonsForEpisodes();
+        }
+
+        async function loadAvailableSeasonsForEpisodes() {
+            const epSeasonSel = document.getElementById('episodeSeasonSelect');
+            if (!epSeasonSel) return;
+            epSeasonSel.innerHTML = '<option value="">Đang tải danh sách Mùa...</option>';
+
+            try {
+                // Fetch direct seasons table
+                const res = await fetch('/api/admin/tables/season?limit=100');
+                if (res.ok) {
+                    const seasons = await res.json();
+                    epSeasonSel.innerHTML = '<option value="">Chọn Mùa phim cần thêm tập...</option>';
+                    seasons.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.season_id;
+                        opt.textContent = `Mã Mùa #${s.season_id} (Series #${s.content_id}: ${s.season_name || 'Mùa ' + s.season_number})`;
+                        epSeasonSel.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                epSeasonSel.innerHTML = '<option value="">Không thể tải danh sách Mùa</option>';
+            }
+        }
+
+        async function handleCreateSeason(e) {
+            e.preventDefault();
+            const seriesId = parseInt(document.getElementById('seasonSeriesSelect').value);
+            const seasonNumber = parseInt(document.getElementById('newSeasonNumber').value);
+            const seasonName = document.getElementById('newSeasonName').value.trim();
+            const releaseDate = document.getElementById('newSeasonDate').value;
+
+            if (!seriesId || !seasonNumber) {
+                showToast("Vui lòng chọn Series và nhập số mùa", "error");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/seasons', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content_id: seriesId,
+                        season_number: seasonNumber,
+                        season_name: seasonName || `Mùa ${seasonNumber}`,
+                        release_date: releaseDate || null
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Đã thêm Mùa ${seasonNumber} cho Series #${seriesId} thành công!`, "success");
+                    document.getElementById('newSeasonForm').reset();
+                    await loadAdminContentCatalog();
+                } else {
+                    showToast(data.error || "Lỗi khi thêm Mùa phim", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi tạo season:", err);
+                showToast("Lỗi kết nối CSDL", "error");
+            }
+        }
+
+        async function handleCreateEpisode(e) {
+            e.preventDefault();
+            const seasonId = parseInt(document.getElementById('episodeSeasonSelect').value);
+            const epNumber = parseInt(document.getElementById('newEpNumber').value);
+            const epTitle = document.getElementById('newEpTitle').value.trim();
+            const duration = parseInt(document.getElementById('newEpDuration').value) || 45;
+
+            if (!seasonId || !epNumber) {
+                showToast("Vui lòng chọn Mùa và nhập số tập", "error");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/episodes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        season_id: seasonId,
+                        episode_number: epNumber,
+                        episode_title: epTitle || `Tập ${epNumber}`,
+                        duration_minutes: duration
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Đã thêm Tập ${epNumber} vào Mùa #${seasonId} thành công!`, "success");
+                    document.getElementById('newEpisodeForm').reset();
+                } else {
+                    showToast(data.error || "Lỗi khi thêm Tập phim", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi tạo episode:", err);
+                showToast("Lỗi kết nối CSDL", "error");
+            }
+        }
+
+        async function handleCreateGenre(e) {
+            e.preventDefault();
+            const genreName = document.getElementById('newGenreNameInput').value.trim();
+            if (!genreName) return;
+            try {
+                const res = await fetch('/api/admin/genres', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ genre_name: genreName })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Đã thêm thể loại "${genreName}" thành công!`, "success");
+                    document.getElementById('newGenreNameInput').value = '';
+                    await loadInitialMetadata();
+                } else {
+                    showToast(data.error || "Lỗi khi thêm Thể loại", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi tạo genre:", err);
+                showToast("Lỗi kết nối CSDL", "error");
+            }
+        }
+
+        async function handleCreateLanguage(e) {
+            e.preventDefault();
+            const code = document.getElementById('newLangCodeInput').value.trim().toLowerCase();
+            const name = document.getElementById('newLangNameInput').value.trim();
+            if (!code || !name) return;
+            try {
+                const res = await fetch('/api/admin/languages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ language_code: code, language_name: name })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Đã thêm ngôn ngữ "${name} (${code})" thành công!`, "success");
+                    document.getElementById('newLangCodeInput').value = '';
+                    document.getElementById('newLangNameInput').value = '';
+                    await loadInitialMetadata();
+                } else {
+                    showToast(data.error || "Lỗi khi thêm Ngôn ngữ", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi tạo language:", err);
+                showToast("Lỗi kết nối CSDL", "error");
+            }
+        }
+
+        async function handleDeleteContent(contentId, title) {
+            const confirmed = confirm(
+                `CẢNH BÁO RÀNG BUỘC TOÀN VẸN (ON DELETE CASCADE):\n\n` +
+                `Bạn có chắc chắn muốn xóa tác phẩm ID #${contentId} ("${title}")?\n\n` +
+                `- Hệ thống sẽ gửi yêu cầu DELETE /api/admin/content/${contentId}.\n` +
+                `- MySQL CASCADE sẽ tự động xóa sạch các bảng con: movie / tv_series -> season -> tv_episode, content_genre, watchlist, và watch_history!\n\n` +
+                `Bấm OK để thực hiện xóa vĩnh viễn.`
+            );
+            if (!confirmed) return;
+
+            try {
+                const res = await fetch(`/api/admin/content/${contentId}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Đã xóa thành công tác phẩm #${contentId} (CASCADE hoàn tất)!`, "success");
+                    await loadAdminContentCatalog();
+                } else {
+                    showToast(data.error || "Lỗi khi xóa nội dung", "error");
+                }
+            } catch (err) {
+                console.error("Lỗi xóa content:", err);
+                showToast("Lỗi kết nối CSDL", "error");
+            }
+        }
+
+        // ==========================================
+        // 5. TEST TRIGGERS (BR-01 & BR-09)
+        // ==========================================
+        async function testTriggerBR01() {
+            const out = document.getElementById('triggerResultBR01');
+            out.classList.remove('hidden');
+            out.className = 'p-3 rounded-lg text-xs font-mono border bg-red-950/60 border-red-500/50 text-red-300';
+            out.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu tạo profile vượt hạn mức tới MySQL...`;
+
+            try {
+                // Tìm tài khoản đã đạt hạn mức tối đa của gói cước để kiểm thử Trigger BR-01
+                let testAccId = 1;
+                try {
+                    const uRes = await fetch('/api/admin/users');
+                    if (uRes.ok) {
+                        const users = await uRes.json();
+                        const fullAcc = users.find(u => (u.profile_count ?? u.current_profile_count ?? 0) >= u.max_profiles_allowed);
+                        if (fullAcc) testAccId = fullAcc.account_id;
+                    }
+                } catch (_) {}
+
+                const res = await fetch('/api/profiles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        account_id: testAccId,
+                        profile_name: 'Test Extra Profile Over Limit',
+                        is_kids: false
+                    })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    out.className = 'p-3 rounded-lg text-xs font-mono border bg-red-950/60 border-red-500/50 text-red-300';
+                    out.innerHTML = `
+                        <div class="font-bold text-red-400 mb-1 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            <span>MySQL Trigger Chặn Thành Công (SIGNAL SQLSTATE '45000' - HTTP ${res.status}):</span>
+                        </div>
+                        <div class="bg-black/70 p-2.5 rounded text-[11px] text-yellow-300 border border-red-500/30">
+                            ${data.error || 'Trigger trg_check_profile_limit_before_insert đã chặn thao tác'}
+                        </div>
+                        <div class="mt-2 text-[11px] text-gray-300">
+                            <i class="fa-solid fa-check text-green-400 mr-1"></i>
+                            Quy tắc <strong>BR-01</strong> hoạt động chính xác: Tài khoản Gói Basic chỉ được phép tạo tối đa 1 Hồ sơ.
+                        </div>
+                    `;
+                } else {
+                    out.className = 'p-3 rounded-lg text-xs font-mono border bg-yellow-950/60 border-yellow-500/50 text-yellow-300';
+                    out.innerHTML = `Thao tác thành công bất ngờ (Vui lòng kiểm tra lại cấu hình tài khoản ID 1)`;
+                }
+            } catch (err) {
+                out.innerHTML = `Lỗi mạng: ${err.message}`;
+            }
+        }
+
+        async function testTriggerBR09() {
+            const out = document.getElementById('triggerResultBR09');
+            out.classList.remove('hidden');
+            out.className = 'p-3 rounded-lg text-xs font-mono border bg-red-950/60 border-red-500/50 text-red-300';
+            out.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi yêu cầu ghi nhận lịch sử xem phim nhãn R cho Hồ sơ Trẻ em (profile_id: 3 - 'Bé Bi', is_kids = 1)...`;
+
+            try {
+                // Tìm phim gắn nhãn R hoặc NC-17 trong kho
+                let rContentId = 1;
+                try {
+                    const catRes = await fetch('/api/catalog?limit=100');
+                    if (catRes.ok) {
+                        const cat = await catRes.json();
+                        const rMovie = cat.find(c => c.rating_age === 'R' || c.rating_age === 'NC-17');
+                        if (rMovie) rContentId = rMovie.content_id;
+                    }
+                } catch (_) {}
+
+                // Gửi request với profile trẻ em (profile_id: 3 - 'Bé Bi', is_kids = 1)
+                const res = await fetch('/api/watch-history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profile_id: 3, // Kids profile 'Bé Bi' (is_kids = 1)
+                        content_id: rContentId,
+                        stopped_position_seconds: 120,
+                        is_completed: false
+                    })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    out.className = 'p-3 rounded-lg text-xs font-mono border bg-red-950/60 border-red-500/50 text-red-300';
+                    out.innerHTML = `
+                        <div class="font-bold text-red-400 mb-1 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            <span>MySQL Trigger Chặn Thành Công (SIGNAL SQLSTATE '45000' - HTTP ${res.status}):</span>
+                        </div>
+                        <div class="bg-black/70 p-2.5 rounded text-[11px] text-yellow-300 border border-red-500/30">
+                            ${data.error || 'Trigger trg_check_kids_rating_before_watch đã chặn thao tác'}
+                        </div>
+                        <div class="mt-2 text-[11px] text-gray-300">
+                            <i class="fa-solid fa-check text-green-400 mr-1"></i>
+                            Quy tắc <strong>BR-09</strong> hoạt động chính xác: Hồ sơ Trẻ em (is_kids = TRUE) tuyệt đối không được phép xem nội dung nhãn R / NC-17.
+                        </div>
+                    `;
+                } else {
+                    out.className = 'p-3 rounded-lg text-xs font-mono border bg-yellow-950/60 border-yellow-500/50 text-yellow-300';
+                    out.innerHTML = `Lưu thành công bất ngờ (Vui lòng kiểm tra lại cờ is_kids của profile_id: 3 trong CSDL)`;
+                }
+            } catch (err) {
+                out.innerHTML = `Lỗi kết nối: ${err.message}`;
+            }
+        }
+
+        // ==========================================
+        // TOAST NOTIFICATION HELPER
+        // ==========================================
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = msg;
+            if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-exclamation text-red-500 text-base';
+            } else if (type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-green-500 text-base';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-blue-500 text-base';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
