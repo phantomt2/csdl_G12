@@ -18,6 +18,7 @@ import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_from_directory, render_template
+from werkzeug.security import generate_password_hash, check_password_hash
 
 import mysql.connector
 from mysql.connector import Error
@@ -32,8 +33,8 @@ static_dir = BASE_DIR / 'static'
 
 app = Flask(
     __name__,
-    template_folder=str(templates_dir) if templates_dir.exists() else str(BASE_DIR),
-    static_folder=str(static_dir) if static_dir.exists() else str(BASE_DIR),
+    template_folder=str(BASE_DIR),
+    static_folder=str(BASE_DIR),
     static_url_path=''
 )
 
@@ -142,22 +143,22 @@ ensure_watch_history_episode_index()
 # =====================================================================
 @app.route('/')
 def serve_index():
+    if (BASE_DIR / 'index.html').exists():
+        return send_from_directory(str(BASE_DIR), 'index.html')
     if (templates_dir / 'index.html').exists():
         return render_template('index.html')
     if (static_dir / 'index.html').exists():
         return send_from_directory(str(static_dir), 'index.html')
-    if (BASE_DIR / 'index.html').exists():
-        return send_from_directory(str(BASE_DIR), 'index.html')
     return "<h1>Mini-Netflix UI: index.html chưa sẵn sàng</h1>", 404
 
 @app.route('/admin')
 def serve_admin():
+    if (BASE_DIR / 'admin.html').exists():
+        return send_from_directory(str(BASE_DIR), 'admin.html')
     if (templates_dir / 'admin.html').exists():
         return render_template('admin.html')
     if (static_dir / 'admin.html').exists():
         return send_from_directory(str(static_dir), 'admin.html')
-    if (BASE_DIR / 'admin.html').exists():
-        return send_from_directory(str(BASE_DIR), 'admin.html')
     return "<h1>Mini-Netflix Admin Console: admin.html chưa sẵn sàng</h1>", 404
 
 @app.route('/api/health')
@@ -199,15 +200,32 @@ def get_accounts():
     """
     return jsonify(query(sql))
 
+ADMIN_EMAILS = {'admin@netflix.com', 'admin@mininetflix.com'}
+DEMO_PASSWORDS = {'123456', 'password123'}
+ADMIN_DEMO_PASSWORDS = {'admin123', '123456', 'password123'}
+
+def verify_user_password(password: str, stored_hash: str, is_admin: bool) -> bool:
+    """Kiểm tra mật khẩu người dùng (hỗ trợ cả hash Werkzeug thật và dữ liệu mock demo)."""
+    if stored_hash and stored_hash.startswith(('scrypt:', 'pbkdf2:', 'argon2:')):
+        return check_password_hash(stored_hash, password)
+    if stored_hash and stored_hash == f"$2b$12${password}Hashed":
+        return True
+    valid_demo = ADMIN_DEMO_PASSWORDS if is_admin else DEMO_PASSWORDS
+    return password in valid_demo
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json or {}
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()
-    
+
     if not email:
         return jsonify({"success": False, "error": "Vui lòng nhập địa chỉ Email."}), 400
-        
+    if not password:
+        return jsonify({"success": False, "error": "Vui lòng nhập mật khẩu."}), 400
+
+    email_lower = email.lower()
+
     sql = """
         SELECT ua.account_id, ua.email, ua.password_hash, ua.account_status,
                st.tier_id, st.tier_name, st.max_profiles_allowed, st.resolution
@@ -217,18 +235,45 @@ def login():
     """
     acc = query(sql, (email,))
     if not acc:
+        if email_lower in ADMIN_EMAILS:
+            if password not in ADMIN_DEMO_PASSWORDS:
+                return jsonify({"success": False, "error": "Mật khẩu quản trị viên không chính xác. (Gợi ý Demo: admin123)"}), 401
+            admin_info = {
+                'account_id': 0,
+                'email': email_lower,
+                'account_status': 'ACTIVE',
+                'tier_id': 3,
+                'tier_name': 'Premium',
+                'max_profiles_allowed': 5,
+                'resolution': '4K',
+                'is_admin': True,
+                'profiles': []
+            }
+            return jsonify({
+                "success": True,
+                "account": admin_info,
+                "is_admin": True,
+                "redirect": "/admin",
+                "message": "Đăng nhập quyền Quản trị viên (DBA) thành công!"
+            })
         return jsonify({"success": False, "error": "Email không tồn tại trong hệ thống. Nếu bạn chưa có tài khoản, vui lòng bấm 'Đăng ký ngay'!"}), 404
-        
+
     user = acc[0]
     if user['account_status'] != 'ACTIVE':
         return jsonify({
             "success": False,
             "error": f"Tài khoản của bạn đang ở trạng thái {user['account_status']} (Bị khóa). Vui lòng liên hệ quản trị viên để mở khóa!"
         }), 403
-        
-    # Xác định quyền Admin
-    is_admin = (user['email'].lower() == 'admin@netflix.com' or 'admin' in user['email'].lower())
-    
+
+    # Xác định quyền Admin theo danh sách email quản trị cố định
+    is_admin = user['email'].lower() in ADMIN_EMAILS
+
+    if not verify_user_password(password, user.get('password_hash', ''), is_admin):
+        return jsonify({
+            "success": False,
+            "error": "Mật khẩu không chính xác. (Gợi ý tài khoản Demo: 123456 hoặc admin123)"
+        }), 401
+
     # Lấy danh sách hồ sơ con (Profiles) của tài khoản
     profiles_sql = """
         SELECT profile_id, account_id, profile_name, avatar_url, is_kids, created_at
@@ -237,7 +282,7 @@ def login():
         ORDER BY profile_id ASC;
     """
     profiles = query(profiles_sql, (user['account_id'],))
-    
+
     user_info = {
         'account_id': user['account_id'],
         'email': user['email'],
@@ -249,9 +294,9 @@ def login():
         'is_admin': is_admin,
         'profiles': profiles
     }
-    
+
     return jsonify({
-        "success": True, 
+        "success": True,
         "account": user_info,
         "is_admin": is_admin,
         "redirect": "/admin" if is_admin else "/",
@@ -278,6 +323,8 @@ def register():
         return jsonify({"success": False, "error": "Vui lòng nhập Mật khẩu bảo mật."}), 400
     if '@' not in email or '.' not in email:
         return jsonify({"success": False, "error": "Định dạng Email không hợp lệ (ví dụ: user@example.com)."}), 400
+    if email.lower() in ADMIN_EMAILS:
+        return jsonify({"success": False, "error": "Email quản trị hệ thống không thể đăng ký từ cổng người dùng."}), 400
 
     conn = get_db_connection()
     if not conn:
@@ -298,8 +345,8 @@ def register():
             cursor.execute("SELECT tier_id, tier_name, max_profiles_allowed, resolution FROM subscription_tier WHERE tier_id = 1;")
             tier = cursor.fetchone()
 
-        # Thêm tài khoản mới vào bảng user_account
-        password_hash = f"$2b$12${password}Hashed"
+        # Thêm tài khoản mới vào bảng user_account với mật khẩu được băm bằng Werkzeug
+        password_hash = generate_password_hash(password)
         cursor.execute("""
             INSERT INTO user_account (email, password_hash, registration_date, account_status, tier_id)
             VALUES (%s, %s, CURDATE(), 'ACTIVE', %s);
@@ -2227,9 +2274,10 @@ def run_custom_sql():
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
+    debug_mode = os.getenv('FLASK_DEBUG', '0').lower() in ('1', 'true', 'yes')
     print("=" * 70)
     print("🎬 MINI-NETFLIX BACKEND SERVER (FLASK API)")
     print(f"📡 Máy chủ đang lắng nghe tại: http://localhost:{port}")
     print(f"🗄️ Kết nối CSDL MySQL: {DB_CONFIG['user']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}")
     print("=" * 70)
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

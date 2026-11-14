@@ -44,21 +44,15 @@ web-ui/
 ├── index.html                 # Giao diện Người dùng (Auth Gate, Profile Gate, Multi-Genre Filter, Watch Logger)
 ├── admin.html                 # Giao diện DBA Admin Console (Revenue View, Dynamic Query Builder 1..300, DML, Triggers)
 ├── requirements.txt           # Danh sách thư viện Python cần cài đặt
-├── .env                       # File cấu hình kết nối MySQL hiện hành
-├── .env.example               # File mẫu cấu hình kết nối MySQL
-├── templates/                 # Thư mục template HTML chuẩn của Flask
-│   ├── index.html
-│   └── admin.html
-├── static/                    # Thư mục phục vụ file tĩnh
-│   ├── index.html
-│   └── admin.html
-└── database/                  # Bộ kịch bản SQL gốc (Phase 3)
-    ├── 01_schema.sql          # Định nghĩa DDL: 13 Bảng, Khóa ngoại CASCADE, 2 Triggers, 2 Views
-    ├── 02_mock_data.sql       # Dữ liệu mẫu phong phú cho toàn bộ 13 bảng
-    ├── 03_queries.sql         # 10 câu truy vấn phân tích phức tạp chuẩn Phase 3
-    ├── 04_performance_test.sql# Kịch bản kiểm thử hiệu năng Index
-    ├── 05_rbac_security.sql   # Phân quyền người dùng CSDL (RBAC)
-    └── 06_negative_test_cases.sql # Kịch bản kiểm thử vi phạm ràng buộc & Triggers
+└── .env.example               # File mẫu cấu hình kết nối MySQL (copy thành .env trước khi chạy)
+
+../database_Phase 3/           # Bộ kịch bản SQL nguồn được setup_database.py nạp tự động
+├── 01_schema.sql              # Định nghĩa DDL: 13 Bảng, Khóa ngoại CASCADE, 2 Triggers, 2 Views
+├── 02_mock_data.sql           # Dữ liệu mẫu phong phú cho toàn bộ 13 bảng
+├── 03_queries.sql             # 10 câu truy vấn phân tích phức tạp chuẩn Phase 3
+├── 04_performance_test.sql    # Kịch bản kiểm thử hiệu năng Index (EXPLAIN)
+├── 05_rbac_security.sql       # Phân quyền người dùng CSDL (RBAC)
+└── 06_negative_test_cases.sql # Kịch bản kiểm thử vi phạm ràng buộc & Triggers
 ```
 
 ---
@@ -198,5 +192,5 @@ Nếu người dùng yêu cầu bạn (AI) chỉnh sửa hoặc kiểm tra thêm
    - `trg_check_kids_rating_before_watch` (`BR-09`): Chặn hồ sơ trẻ em (`is_kids = 1`, ví dụ `profile_id = 3`) ghi nhận xem nội dung nhãn `R` hoặc `NC-17`.
 4. **Bộ Lọc Phân Tích Đa Chiều Admin (`POST /api/admin/query-builder`):**
    - Cho phép kết hợp 4 phân hệ (`content`, `watch_behavior`, `subscription`, `raw_table`), lọc đa điều kiện, gom nhóm `GROUP BY`, và điều chỉnh `LIMIT` tự do trong khoảng `1 <= limit <= 300`.
-5. **Đồng bộ hóa File HTML:**
-   - Khi sửa `index.html` hoặc `admin.html` tại thư mục gốc `web-ui/`, luôn copy đồng bộ sang `web-ui/templates/` và `web-ui/static/` (vì Flask ưu tiên đọc từ `templates/` khi render).
+5. **Nguồn giao diện duy nhất (Single Source of Truth):**
+   - Flask phục vụ trực tiếp `web-ui/index.html` và `web-ui/admin.html`, không lưu các bản sao trùng lặp ở `templates/` hay `static/`.

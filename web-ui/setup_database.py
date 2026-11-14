@@ -47,6 +47,22 @@ def find_sql_file(filename: str) -> Path:
     raise FileNotFoundError(f"Không tìm thấy file SQL: {filename}")
 
 
+def _split_sql_statements(sql_chunk: str) -> list[str]:
+    """Tách các câu lệnh SQL chỉ tại dấu `;` ở cuối dòng, tránh cắt nhầm `;` bên trong chuỗi dữ liệu."""
+    statements = []
+    for raw_stmt in re.split(r';\s*(?:\r?\n|$)', sql_chunk):
+        stmt = raw_stmt.strip()
+        if not stmt:
+            continue
+        has_sql = any(
+            line.strip() and not line.strip().startswith('--')
+            for line in stmt.splitlines()
+        )
+        if has_sql:
+            statements.append(stmt)
+    return statements
+
+
 def execute_sql_script(cursor, sql_text: str):
     """Thực thi file SQL có hỗ trợ khối DELIMITER $$ (Triggers / Procedures)."""
     # Tách theo DELIMITER nếu có
@@ -54,10 +70,8 @@ def execute_sql_script(cursor, sql_text: str):
         parts = sql_text.split('DELIMITER $$')
         # Phần trước DELIMITER $$
         normal_sql = parts[0]
-        for stmt in normal_sql.split(';'):
-            stmt = stmt.strip()
-            if stmt:
-                cursor.execute(stmt)
+        for stmt in _split_sql_statements(normal_sql):
+            cursor.execute(stmt)
 
         for block in parts[1:]:
             if 'DELIMITER ;' in block:
@@ -70,15 +84,11 @@ def execute_sql_script(cursor, sql_text: str):
                 if trig_stmt:
                     cursor.execute(trig_stmt)
 
-            for stmt in rest_part.split(';'):
-                stmt = stmt.strip()
-                if stmt:
-                    cursor.execute(stmt)
-    else:
-        for stmt in sql_text.split(';'):
-            stmt = stmt.strip()
-            if stmt:
+            for stmt in _split_sql_statements(rest_part):
                 cursor.execute(stmt)
+    else:
+        for stmt in _split_sql_statements(sql_text):
+            cursor.execute(stmt)
 
 
 def main():
@@ -151,6 +161,7 @@ def main():
         print(f"• Số lượng Bảng (Base Tables) : {len(tables)} / 13 bảng ({', '.join(tables)})")
         print(f"• Số lượng Khung nhìn (Views) : {len(views)} / 2 views ({', '.join(views)})")
         print(f"• Số lượng Triggers           : {len(triggers)} / 2 triggers ({', '.join(triggers)})")
+        print("• Tài khoản Demo sẵn sàng     : User (an.nguyen@gmail.com / 123456) | Admin (admin@netflix.com / admin123)")
         print("=" * 72)
         print("[HOÀN TẤT] Hệ thống CSDL Mini-Netflix đã sẵn sàng! Chạy `python server.py` để mở Web.")
 

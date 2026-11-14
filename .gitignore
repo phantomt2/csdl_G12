@@ -1,0 +1,17 @@
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment variables & secrets
+.env
+web-ui/.env
+
+# OS & Editor temporary files
+.DS_Store
+Thumbs.db
+~$*.docx
+*.log
