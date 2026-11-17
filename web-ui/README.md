@@ -152,12 +152,12 @@ pip install -r requirements.txt
    - `DB_HOST=localhost`
    - `DB_PORT=3306`
    - `DB_USER=root`
-   - `DB_PASSWORD=123` *(Nếu kết nối thất bại với lỗi Access Denied 1045, hãy kiểm tra mật khẩu MySQL trên máy chủ hoặc hỏi người dùng mật khẩu `root` của MySQL).*
+   - `DB_PASSWORD=1234` *(Nếu kết nối thất bại với lỗi Access Denied 1045, hãy kiểm tra mật khẩu MySQL trên máy chủ hoặc hỏi người dùng mật khẩu `root` của MySQL).*
    - `DB_NAME=mini_netflix`
    - `PORT=5000`
 
 ### Bước 3: Thực thi Script Khởi tạo & Kiểm định CSDL (`setup_database.py`)
-Chạy lệnh sau để tự động tạo database `mini_netflix` (nếu chưa có), nạp `database/01_schema.sql` + `database/02_mock_data.sql`, và đảm bảo chỉ mục `uq_watch_history_profile_content_ep (profile_id, content_id, episode_id)` đã được kích hoạt:
+Chạy lệnh sau để tự động tạo database `mini_netflix` (nếu chưa có), nạp `database_Phase 3/01_schema.sql` + `database_Phase 3/02_mock_data.sql`, và đảm bảo chỉ mục `uq_watch_history_profile_content_ep (profile_id, content_id, episode_id)` đã được kích hoạt:
 ```powershell
 python setup_database.py
 ```
