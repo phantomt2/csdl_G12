@@ -58,9 +58,14 @@ csdl_G12/
 │   ├── 01_schema.sql                  # DDL: 13 bảng, 16 CHECK, 8 UNIQUE, 14 FK, 4 Index, 2 Trigger, 2 View
 │   ├── 02_mock_data.sql               # DML: 86.895 bản ghi mẫu cốt lõi + dữ liệu mở rộng chuẩn hóa từ Kaggle
 │   ├── 03_queries.sql                 # 10 truy vấn nghiệp vụ nâng cao (JOIN, GROUP BY, HAVING, Subquery)
-│   ├── 04_performance_test.sql        # Kiểm thử hiệu năng chỉ mục bằng EXPLAIN (< 200ms)
+│   ├── 04_performance_test.sql        # Kiểm thử hiệu năng Before/After 5 chỉ mục & 3 Edge Cases (EXPLAIN ANALYZE)
 │   ├── 05_rbac_security.sql           # Phân quyền RBAC (3 Roles: admin, content_manager, streaming_client)
-│   └── 06_negative_test_cases.sql     # 5 kịch bản kiểm thử chặn dữ liệu sai (TC-01 đến TC-05)
+│   ├── 06_negative_test_cases.sql     # 5 kịch bản kiểm thử chặn dữ liệu sai (TC-01 đến TC-05)
+│   ├── 07_extended_test_cases.sql     # Kịch bản mở rộng: Positive, CHECK/UNIQUE, CASCADE, EER & RBAC test
+│   ├── verify_database.py             # Script Python tự động chạy 56 ca kiểm thử DB & Flask API (ROLLBACK an toàn)
+│   ├── benchmark_performance.py       # Script Python đo hiệu năng thuần MySQL (p50/p95/p99, QPS, Handler I/O)
+│   ├── TEST_RESULTS.md                # Kết quả kiểm chứng tự động 56/56 PASS trên dữ liệu đầy đủ
+│   └── PERFORMANCE_REPORT.md          # Báo cáo đo kiểm hiệu năng 5 chỉ mục, 3 Edge Cases, 10 truy vấn & Views
 │
 ├── datasets/                          # Tập dữ liệu nguồn Kaggle & mô tả quy trình nạp dữ liệu
 │   ├── README.md                      # Mô tả nguồn dữ liệu, ánh xạ cột và thống kê 86.895 bản ghi
@@ -166,9 +171,19 @@ Mở lần lượt các file trong thư mục [`database_Phase 3/`](database_Pha
 1. `01_schema.sql` — Tạo database `mini_netflix`, 13 bảng, chỉ mục B-Tree, 2 Triggers và 2 Views.
 2. `02_mock_data.sql` — Nạp 86.895 bản ghi mẫu.
 3. `03_queries.sql` — Chạy kiểm thử 10 truy vấn nghiệp vụ nâng cao.
-4. `04_performance_test.sql` — Chạy các lệnh `EXPLAIN` kiểm chứng chỉ mục B-Tree.
+4. `04_performance_test.sql` — Chạy đối chiếu `EXPLAIN` / `EXPLAIN ANALYZE` kiểm chứng 5 chỉ mục & 3 Edge Cases.
 5. `05_rbac_security.sql` — Khởi tạo 3 Roles và áp dụng `GRANT` / `REVOKE`.
 6. `06_negative_test_cases.sql` — Chạy **từng câu lệnh riêng lẻ** (`TC-01` đến `TC-05`) để quan sát mã lỗi MySQL (`1644`, `1062`, `1451`, `3819`) chặn dữ liệu sai.
+7. `07_extended_test_cases.sql` — Bộ kịch bản mở rộng (Positive cận biên, Extended `CHECK`/`UNIQUE`, `ON DELETE CASCADE`, kiểm toán EER, kiểm thử RBAC).
+
+### Cách 3: Chạy kiểm thử tự động & Benchmark hiệu năng bằng Python
+```powershell
+# Chạy toàn bộ 56 ca kiểm thử Schema, Triggers, Cascade, RBAC, Queries & Flask API:
+python "database_Phase 3/verify_database.py"
+
+# Chạy bộ Benchmark đo p50/p95/p99, QPS, EXPLAIN ANALYZE & Handler_read_* thuần tầng MySQL:
+python "database_Phase 3/benchmark_performance.py"
+```
 
 ---
 
@@ -178,3 +193,5 @@ Mở lần lượt các file trong thư mục [`database_Phase 3/`](database_Pha
 - **Đặc tả REST API:** [API_CONTRACT.md](API_CONTRACT.md)
 - **Hướng dẫn chi tiết Web UI & AI Playbook:** [web-ui/README.md](web-ui/README.md)
 - **Mô tả Tập dữ liệu:** [datasets/README.md](datasets/README.md)
+- **Kết quả Kiểm chứng Tự động (56/56 PASS):** [database_Phase 3/TEST_RESULTS.md](database_Phase%203/TEST_RESULTS.md)
+- **Báo cáo Benchmark Hiệu năng MySQL:** [database_Phase 3/PERFORMANCE_REPORT.md](database_Phase%203/PERFORMANCE_REPORT.md)
